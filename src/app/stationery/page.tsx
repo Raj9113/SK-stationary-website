@@ -1,113 +1,81 @@
 import Link from 'next/link';
-import { google } from 'googleapis';
 
-// Cache the data for 60 seconds so your site stays incredibly fast
-export const revalidate = 60; 
-
-// 1. The function to grab your live data from Google Sheets
-async function getInventoryData() {
-  try {
-    const auth = new google.auth.GoogleAuth({
-      credentials: {
-        client_email: process.env.GOOGLE_CLIENT_EMAIL,
-        private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'), 
-      },
-      scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
-    });
-
-    const sheets = google.sheets({ version: 'v4', auth });
-    
-    // Make sure 'Sheet1!A1:D' matches your actual Google Sheet tab name and columns
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId: process.env.SPREADSHEET_ID,
-      range: 'Sheet1!A1:D', 
-    });
-
-    return response.data.values || [];
-  } catch (error) {
-    console.error("Error fetching Google Sheets data:", error);
-    return [];
-  }
-}
-
-// 2. The Main Page Component
-export default async function ProductGallery() {
-  // Fetch the data
-  const rows = await getInventoryData();
-  
-  // Separate headers from the actual products, with a fallback just in case it's empty
-  const products = rows.length > 1 ? rows.slice(1) : [];
-
+export default function Home() {
   return (
-    <main className="min-h-screen bg-[#0a0510] text-white relative overflow-hidden pb-20">
-      
-      {/* Background Glowing Orbs */}
-      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-fuchsia-600/20 rounded-full blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none"></div>
+    <main className="min-h-screen bg-slate-900">
+      {/* Hero Section */}
+      {/* Hero Section - Gradient Fade */}
+<section className="bg-linear-to-b from-blue-700 via-blue-800 to-slate-900 text-white pt-14 md:pt-6 md:pb-4 pb-8 px-5 text-center md:py-10 md:bg-blue-600 md:bg-none">
+  
+  {/* Little welcome badge */}
+  <div className="inline-block bg-blue-500/20 text-blue-200 px-6 md:mb-0.5 py-1.5 rounded-full text-sm font-semibold mb-6 border border-blue-500/30">
+    Welcome to
+  </div>
 
-      {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-6 pt-16 relative z-10">
-        
-        {/* Header */}
-        <div className="flex justify-between items-end mb-10">
-          <div>
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-wider mb-2">
-              Explore <span className="text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-500 to-indigo-500">Products</span>
-            </h1>
-            <p className="text-gray-400 text-sm md:text-base">Live inventory from our store.</p>
-          </div>
-          <Link href="/" className="text-sm text-gray-400 hover:text-white mb-2 hidden md:block">
-            &larr; Back to Home
-          </Link>
-        </div>
+  {/* Adjusted text sizing and forced a line break on mobile so it fits perfectly */}
+  <h1 className="text-4xl md:text-5xl font-extrabold mb-5 tracking-tight leading-tight">
+    S K Stationary <br className="md:hidden" /> & Janseva Kendr
+  </h1>
+  
+  <p className="text-slate-300 text-base md:text-xl max-w-2xl mx-auto leading-relaxed">
+    Your one-stop destination for stationery, digital services, commercial shuttering, and DJ setups.
+  </p>
+</section>
 
-        {/* Dynamic Product Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      {/* Services Grid */}
+      <section className="md:my-10 md:mx-16">
+        <h2 className="text-3xl font-semibold text-center mb-10 text-white">Our Services</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 md:gap-16 gap-10 px-8 pb-10 md:pb-10">
           
-          {products.length === 0 ? (
-            <p className="text-gray-400 col-span-full">No products found or still loading...</p>
-          ) : (
-            products.map((row, index) => (
-              // The Glassmorphism Card mapped to your data
-              <div key={index} className="bg-white/5 backdrop-blur-md border border-white/10 p-4 rounded-2xl flex flex-col hover:border-fuchsia-500/50 transition-all duration-300 group">
-                
-                {/* Image Placeholder */}
-                <div className="bg-black/40 rounded-xl h-48 w-full mb-4 flex items-center justify-center overflow-hidden relative border border-white/5">
-                   <span className="text-gray-600 text-xs uppercase tracking-widest">{row[1] || 'Image'}</span>
-                   <div className="absolute inset-0 bg-gradient-to-t from-fuchsia-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                </div>
-                
-                {/* Dynamic Product Info (A=Name, B=Category, C=Price, D=Stock) */}
-                <h3 className="text-lg font-semibold mb-1 text-gray-100 line-clamp-1">{row[0]}</h3>
-                
-                <div className="flex justify-between items-center mb-4">
-                  <p className="text-gray-400 text-xs uppercase tracking-wider">{row[1]}</p>
-                  {/* Stock Indicator */}
-                  <span className="text-[10px] bg-white/10 px-2 py-1 rounded-md text-gray-300">
-                    Stock: {row[3]}
-                  </span>
-                </div>
-                
-                {/* Price & Action button */}
-                <div className="mt-auto flex items-center justify-between gap-3">
-                  <p className="text-indigo-400 font-bold text-lg">₹{row[2]}</p>
-                  
-                  {/* Neon Outline Button linking to your WhatsApp */}
-                  <a 
-                    href={`https://wa.me/YOUR_NUMBER_HERE?text=I%20am%20interested%20in%20buying%20the%20${encodeURIComponent(row[0])}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-4 py-2 rounded-full border border-fuchsia-500/50 text-fuchsia-400 hover:bg-fuchsia-500 hover:text-white hover:shadow-[0_0_15px_rgba(217,70,239,0.5)] transition-all text-sm font-semibold tracking-wide whitespace-nowrap"
-                  >
-                    Buy Now
-                  </a>
-                </div>
-              </div>
-            ))
-          )}
+          {/* Card 1: Stationery */}
+          <div className="bg-slate-800 p-6 flex flex-col rounded-lg shadow-md">
+            <h3 className="text-xl font-bold mb-2 text-green-400">Stationery</h3>
+            <p className="text-gray-400 mb-4">Complete range of office and school supplies.</p>
+            <Link href="/stationery" className="text-blue-400 mt-auto hover:underline">View Products &rarr;</Link>
+          </div>
+
+          {/* Card 2: Janseva Kendr */}
+          <div className="bg-slate-800 p-6 rounded-lg flex flex-col shadow-md">
+            <h3 className="text-xl font-bold mb-2 text-green-400 flex flex-col">Online Services</h3>
+            <p className="text-gray-400 mb-4">Fast assistance with forms, applications, and digital tasks.</p>
+            <Link href="/janseva-kendr" className="text-blue-400 mt-auto hover:underline">Learn More &rarr;</Link>
+          </div>
+
+          {/* Card 3: Shuttering */}
+          <div className="bg-slate-800 p-6 rounded-lg shadow-md flex flex-col">
+            <h3 className="text-xl font-bold mb-2 flex flex-col text-green-400">Commercial Shuttering</h3>
+            <p className="text-gray-400 mb-4">Reliable materials and great deals for your construction needs.</p>
+            <Link href="/shuttering" className="text-blue-400 mt-auto hover:underline">Get a Quote &rarr;</Link>
+          </div>
+
+          {/* Card 4: DJ Services */}
+          <div className="bg-slate-800 p-6 rounded-lg shadow-md flex flex-col">
+            <h3 className="text-xl font-bold flex flex-col mb-2 text-green-400">DJ Services</h3>
+            <p className="text-gray-400 mb-4">Professional sound and music for events and parties.</p>
+            <Link href="/dj-services" className="text-blue-400 mt-auto hover:underline">Book Now &rarr;</Link>
+          </div>
 
         </div>
-      </div>
+      </section>
+
+      {/* Call to Action */}
+      <section className="py-12 bg-slate-950 px-4 text-center">
+        <h2 className="text-xl md:text-2xl text-white font-bold mb-6">Ready to work with us?</h2>
+        <div className='flex flex-col sm:flex-row gap-4 justify-center items-center'>
+          <a 
+          href="tel:9113703324" 
+          className="w-90 sm:w-auto bg-blue-800 text-white px-6 py-3 rounded-full font-semibold hover:bg-blue-500 transition"
+        >
+          Call us 24x7
+        </a>
+         <a 
+          href="https://wa.me/9113703324" 
+          className="w-90 sm:w-auto bg-green-800 text-white px-6 py-3 rounded-full font-semibold hover:bg-green-500 transition"
+        >
+          Message us on WhatsApp
+        </a>
+        </div>
+      </section>
     </main>
   );
 }
