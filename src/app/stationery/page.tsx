@@ -1,5 +1,4 @@
 import Link from "next/link";
-"use client";
 
 const Card = ({
   title,
@@ -24,75 +23,6 @@ const Card = ({
   );
 };
 
-import React, { useState, useEffect } from 'react';
-
-// Define the shape of our slide data
-interface Slide {
-  id: number;
-  title: string;
-  bgColor: string;
-}
-
-const slides: Slide[] = [
-  { id: 1, title: 'Slide 1: Welcome', bgColor: 'bg-blue-500' },
-  { id: 2, title: 'Slide 2: Features', bgColor: 'bg-red-500' },
-  { id: 3, title: 'Slide 3: Analytics', bgColor: 'bg-emerald-500' },
-  { id: 4, title: 'Slide 4: Testimonials', bgColor: 'bg-amber-500' },
-  { id: 5, title: 'Slide 5: Get Started', bgColor: 'bg-purple-500' },
-];
-
-export default function Carousel() {
-  const [currentIndex, setCurrentIndex] = useState<number>(0);
-
-  // Handle the 2-second automatic timer
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % slides.length);
-    }, 2000); // 2000ms = 2 seconds
-
-    // Cleanup interval on component unmount to prevent memory leaks
-    return () => clearInterval(timer);
-  }, []);
-
-  return (
-    <div className="w-full max-w-3xl mx-auto p-4">
-      {/* Carousel Container */}
-      <div className="relative overflow-hidden rounded-xl shadow-2xl h-80">
-        
-        {/* Slides Track */}
-        <div
-          className="flex h-full transition-transform duration-500 ease-in-out"
-          style={{ transform: `translateX(-${currentIndex * 100}%)` }}
-        >
-          {slides.map((slide) => (
-            <div
-              key={slide.id}
-              className={`w-full h-full flex-shrink-0 flex items-center justify-center ${slide.bgColor}`}
-            >
-              <h2 className="text-white text-4xl font-bold tracking-wider">
-                {slide.title}
-              </h2>
-            </div>
-          ))}
-        </div>
-
-        {/* Progress Indicators (Dots) */}
-        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
-          {slides.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentIndex(index)}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                currentIndex === index ? 'bg-white scale-125' : 'bg-white/50 hover:bg-white/75'
-              }`}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
 const Product = () => {
   return (
     <div className="min-h-screen bg-yellow-100 text-gray-800 py-12">
