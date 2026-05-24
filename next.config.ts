@@ -3,4 +3,6 @@ const nextConfig = {
   // Aapki config options yahan aayengi (abhi ke liye khali chhod dein)
 };
 
-module.exports = nextConfig;
+module.exports = {
+  allowedDevOrigins: ['local-origin.dev', '*.local-origin.dev'],
+}
