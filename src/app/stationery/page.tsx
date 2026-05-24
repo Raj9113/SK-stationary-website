@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ChevronRight, Sun, Moon, ShoppingCart, X, Minus, Plus } from 'lucide-react';
 
 interface Product {
@@ -136,7 +136,7 @@ const categories: Category[] = [
   { id: 'Pencil', label: 'Penciles' },
 ];
 
-export default function ProductPage(): JSX.Element {
+export default function ProductPage() {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [isDark, setIsDark] = useState<boolean>(true);
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -152,18 +152,18 @@ export default function ProductPage(): JSX.Element {
       ? products
       : products.filter((p) => p.category === activeCategory);
 
-  const toggleTheme = (): void => {
+  const toggleTheme = () => {
     setIsDark(!isDark);
   };
 
-  const showToast = (productName: string): void => {
+  const showToast = (productName: string) => {
     setToast({ show: true, message: 'Product added to cart.', productName });
     setTimeout(() => {
       setToast({ show: false, message: '', productName: '' });
     }, 3000);
   };
 
-  const addToCart = (product: Product): void => {
+  const addToCart = (product: Product) => {
     setCart((prevCart) => {
       const existingItem = prevCart.find((item) => item.id === product.id);
       if (existingItem) {
@@ -179,11 +179,11 @@ export default function ProductPage(): JSX.Element {
     });
   };
 
-  const removeFromCart = (productId: number): void => {
+  const removeFromCart = (productId: number) => {
     setCart((prevCart) => prevCart.filter((item) => item.id !== productId));
   };
 
-  const updateQuantity = (productId: number, quantity: number): void => {
+  const updateQuantity = (productId: number, quantity: number) => {
     if (quantity <= 0) {
       removeFromCart(productId);
       return;
