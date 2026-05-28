@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ChevronRight, Sun, Moon, ShoppingCart, X, Minus, Plus } from 'lucide-react';
+import Link from 'next/link';
 
 interface Product {
   id: number;
@@ -503,27 +504,33 @@ export default function ProductPage() {
                           <ShoppingCart size={20} />
                         </button>
 
-                        {/* Learn More Button */}
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center transform group-hover:translate-x-1 transition-transform duration-300 ${
-                          isDark ? 'bg-white text-black' : 'bg-black text-white'
-                        }`}>
+                        {/* Link to Detail Page */}
+                        <Link
+                          href={`/products/${product.id}`}
+                          className={`w-10 h-10 rounded-full flex items-center justify-center transform group-hover:translate-x-1 transition-transform duration-300 ${
+                            isDark ? 'bg-white text-black' : 'bg-black text-white'
+                          }`}
+                        >
                           <ChevronRight size={20} />
-                        </div>
+                        </Link>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Learn More Link */}
-                <button className={`mt-4 text-sm font-semibold flex items-center gap-1 group/link transition-colors ${
-                  isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
-                }`}>
+                <Link
+                  href={`/products/${product.id}`}
+                  className={`mt-4 text-sm font-semibold flex items-center gap-1 group/link transition-colors ${
+                    isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
+                  }`}
+                >
                   Learn more
                   <ChevronRight
                     size={16}
                     className="transform group-hover/link:translate-x-1 transition-transform"
                   />
-                </button>
+                </Link>
               </div>
             );
           })}
