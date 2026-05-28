@@ -1,8 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Aapki config options yahan aayengi (abhi ke liye khali chhod dein)
+  experimental: {
+    allowedDevOrigins: [
+      '192.168.31.250',
+      '192.168.31.250:3000',
+      'localhost:3000'
+    ]
+  }
 };
 
-module.exports = {
-  allowedDevOrigins: ['local-origin.dev', '*.local-origin.dev'],
-}
+export default nextConfig;
