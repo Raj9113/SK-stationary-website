@@ -76,6 +76,15 @@ const allProducts: Product[] = [
     description: 'Incredible performance. Stunning display.',
     badge: 'New',
   },
+  {
+    id: 8,
+    name: 'MacBook Pro max',
+    category: 'Book',
+    price: '$1,999',
+    image: '💻',
+    description: 'Incredible performance. Stunning display.',
+    badge: 'New',
+  },
 ];
 
 interface DetailedProduct extends Product {
