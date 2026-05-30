@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { ChevronRight, Sun, Moon, ShoppingCart, X, Minus, Plus, Heart, Share2, Star, Truck, RotateCcw, Lock } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ChevronRight, ShoppingCart, Heart, Share2, Star, Truck, RotateCcw, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { useCart } from '@/context/CartContext';
 
 interface Product {
   id: number;
@@ -154,9 +155,12 @@ const getProductDetails = (id: number): DetailedProduct => {
 export default function ProductDetail() {
   const params = useParams();
   const [isDark, setIsDark] = useState(true);
-  const [quantity, setQuantity] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [activeTab, setActiveTab] = useState<'details' | 'reviews' | 'shipping'>('details');
+  const [toast, setToast] = useState<{ show: boolean; message: string }>({ show: false, message: '' });
+  const [isAddedToCart, setIsAddedToCart] = useState(false);
+
+  const { addToCart, getProductQuantity } = useCart();
 
   const productId = parseInt(params.id as string) || 1;
   const product = getProductDetails(productId);
@@ -164,41 +168,44 @@ export default function ProductDetail() {
     .filter((p) => p.category === product.category && p.id !== productId)
     .slice(0, 4);
 
+  // Check if product was deleted from cart
+  useEffect(() => {
+    if (isAddedToCart && getProductQuantity(productId) === 0) {
+      setIsAddedToCart(false);
+    }
+  }, [getProductQuantity(productId), isAddedToCart, productId]);
+
   const averageRating = (
     product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length
   ).toFixed(1);
 
+  const showToast = (message: string) => {
+    setToast({ show: true, message });
+    setTimeout(() => {
+      setToast({ show: false, message: '' });
+    }, 3000);
+  };
+
+  const handleAddToCart = () => {
+    const baseProduct = allProducts.find((p) => p.id === productId) || allProducts[0];
+    addToCart(baseProduct);
+    setIsAddedToCart(true);
+    showToast(`${product.name} added to cart!`);
+  };
+
   return (
     <div className={isDark ? 'min-h-screen bg-black' : 'min-h-screen bg-white'}>
-      {/* Navigation */}
-      <nav className={`sticky top-0 z-50 backdrop-blur-md transition-all duration-300 ${
-        isDark ? 'bg-black/80 border-gray-800' : 'bg-white/80 border-gray-200'
-      } border-b`}>
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/stationery" className={`text-2xl font-semibold ${isDark ? 'text-white' : 'text-black'} tracking-tight hover:opacity-80 transition`}>
-              Stationery Store
-            </Link>
-            <div className="flex items-center gap-6">
-              <Link href="/stationery" className={`px-4 py-2 text-sm transition-colors ${
-                isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-black'
-              }`}>
-                Back to Shop
-              </Link>
-              <button
-                onClick={() => setIsDark(!isDark)}
-                className={`p-2.5 rounded-full transition-all duration-300 ${
-                  isDark 
-                    ? 'bg-gray-900 text-yellow-400 hover:bg-gray-800' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {isDark ? <Sun size={20} /> : <Moon size={20} />}
-              </button>
-            </div>
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className={`fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-toast-in ${
+          isDark ? 'bg-green-600' : 'bg-green-500'
+        } text-white px-8 py-4 rounded-full shadow-2xl flex items-center gap-3 backdrop-blur-sm border border-green-400/30`}>
+          <div className="flex items-center gap-3">
+            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+            <span className="font-semibold">{toast.message}</span>
           </div>
         </div>
-      </nav>
+      )}
 
       {/* Product Detail Section */}
       <section className="max-w-7xl mx-auto px-6 py-12">
@@ -265,31 +272,28 @@ export default function ProductDetail() {
 
             {/* Quantity & Actions */}
             <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <span className={`font-semibold ${isDark ? 'text-white' : 'text-black'}`}>Quantity:</span>
-                <div className={`flex items-center border rounded-lg ${isDark ? 'border-gray-700 bg-gray-900' : 'border-gray-300 bg-gray-50'}`}>
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className={`px-4 py-2 transition-colors ${isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-200'}`}
-                  >
-                    −
-                  </button>
-                  <span className={`px-6 py-2 font-semibold ${isDark ? 'text-white' : 'text-black'}`}>
-                    {quantity}
-                  </span>
-                  <button
-                    onClick={() => setQuantity(quantity + 1)}
-                    className={`px-4 py-2 transition-colors ${isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-200'}`}
-                  >
-                    +
-                  </button>
+              {isAddedToCart && (
+                <div className="flex items-center gap-4">
+                  <span className={`font-semibold ${isDark ? 'text-white' : 'text-black'}`}>Quantity:</span>
+                  <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Manage quantity in your cart
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Add to Cart Button */}
-              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-lg text-lg transition-colors flex items-center justify-center gap-2">
+              <button 
+                onClick={handleAddToCart}
+                disabled={isAddedToCart}
+                className={`w-full font-bold py-4 rounded-lg text-lg transition-colors flex items-center justify-center gap-2 ${
+                  isAddedToCart
+                    ? isDark
+                      ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                      : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                }`}>
                 <ShoppingCart size={24} />
-                Add to Cart
+                {isAddedToCart ? 'Added to Cart' : 'Add to Cart'}
               </button>
 
               {/* Secondary Actions */}
