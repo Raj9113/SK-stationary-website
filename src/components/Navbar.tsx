@@ -1,18 +1,18 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { useTheme } from '@/context/ThemeContext';
 import { ChevronRight, Sun, Moon, ShoppingCart, X, Minus, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 
 export default function Navbar() {
-  const [isDark, setIsDark] = useState<boolean>(true);
+  const { isDark, toggleTheme } = useTheme();
+  const pathname = usePathname();
+  const showThemeToggle = pathname === '/stationery';
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
   const { cart, removeFromCart, updateQuantity, cartTotal, cartItemCount } = useCart();
-
-  const toggleTheme = () => {
-    setIsDark(!isDark);
-  };
 
   return (
     <>
@@ -56,18 +56,20 @@ export default function Navbar() {
               </button>
 
               {/* Theme Toggle Button */}
-              <button
-                onClick={toggleTheme}
-                className={`p-2.5 rounded-full transition-all duration-300 ${
-                  isDark
-                    ? 'bg-gray-900 text-yellow-400 hover:bg-gray-800'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-                aria-label="Toggle theme"
-                title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-              >
-                {isDark ? <Sun size={20} /> : <Moon size={20} />}
-              </button>
+              {showThemeToggle && (
+                <button
+                  onClick={toggleTheme}
+                  className={`p-2.5 rounded-full transition-all duration-300 ${
+                    isDark
+                      ? 'bg-gray-900 text-yellow-400 hover:bg-gray-800'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                  aria-label="Toggle theme"
+                  title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+                >
+                  {isDark ? <Sun size={20} /> : <Moon size={20} />}
+                </button>
+              )}
             </div>
           </div>
         </div>

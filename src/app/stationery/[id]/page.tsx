@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTheme } from '@/context/ThemeContext';
 import { ChevronRight, ShoppingCart, Heart, Share2, Star, Truck, RotateCcw, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -154,7 +155,7 @@ const getProductDetails = (id: number): DetailedProduct => {
 
 export default function ProductDetail() {
   const params = useParams();
-  const [isDark, setIsDark] = useState(true);
+  const { isDark } = useTheme();
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [activeTab, setActiveTab] = useState<'details' | 'reviews' | 'shipping'>('details');
   const [toast, setToast] = useState<{ show: boolean; message: string }>({ show: false, message: '' });

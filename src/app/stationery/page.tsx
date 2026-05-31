@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTheme } from '@/context/ThemeContext';
 import { ChevronRight, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
@@ -136,7 +137,7 @@ const categories: Category[] = [
 
 export default function ProductPage() {
   const [activeCategory, setActiveCategory] = useState<string>('all');
-  const [isDark, setIsDark] = useState<boolean>(true);
+  const { isDark } = useTheme();
   const [toast, setToast] = useState<{ show: boolean; message: string; productName?: string }>({ 
     show: false, 
     message: '',
@@ -409,7 +410,7 @@ export default function ProductPage() {
             </div>
           </div>
           <div className={`pt-8 text-center text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-            <p>&copy; 2024 Stationery Store. All rights reserved.</p>
+            <p>&copy; 2024 S K Stationery. All rights reserved.</p>
           </div>
         </div>
       </footer>
