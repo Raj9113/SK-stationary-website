@@ -40,8 +40,7 @@ export default function Home() {
         </h1>
 
         <p className="text-slate-300 text-base md:text-xl max-w-2xl mx-auto leading-relaxed">
-          Your one-stop destination for stationery, digital services, commercial
-          shuttering, and DJ setups.
+          Your one-stop destination for stationery products and digital services.
         </p>
       </section>
 
@@ -50,7 +49,7 @@ export default function Home() {
         <h2 className="text-3xl font-semibold text-center mb-10 text-white">
           Our Services
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 md:gap-16 gap-10 px-8 pb-10 md:pb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:gap-16 gap-10 px-8 pb-10 md:pb-10">
           {/* Ab aapka code itna clean aur chota dikhega */}
           <ServiceCard
             title="Stationery"
