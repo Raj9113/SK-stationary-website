@@ -1,4 +1,5 @@
 "use client";
+import "./admin.css";
 
 import { useEffect, useMemo, useState } from "react";
 import { Plus, Search, Pencil, Trash2, Package, IndianRupee, Boxes, AlertTriangle, X, Save, Image as ImageIcon, Star, Eye, LayoutDashboard, Tags, Settings, ArrowUpRight } from "lucide-react";
