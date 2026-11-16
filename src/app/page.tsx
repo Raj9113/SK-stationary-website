@@ -66,19 +66,7 @@ export default function Home() {
             href="/janseva-kendr"
           />
 
-          <ServiceCard
-            title="Commercial Shuttering"
-            description="Reliable materials and great deals for your construction needs."
-            linkText="Get a Quote &rarr;"
-            href="/shuttering"
-          />
 
-          <ServiceCard
-            title="DJ Services"
-            description="Professional sound and music for events and parties."
-            linkText="Book Now &rarr;"
-            href="/dj-services"
-          />
         </div>
       </section>
 
