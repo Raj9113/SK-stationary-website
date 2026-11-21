@@ -68,25 +68,25 @@ export default function ProductPage() {
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
         {categories.length > 1 && <div className="mb-8 flex gap-2 overflow-x-auto pb-2">{categories.map(category => <button key={category} onClick={() => setActiveCategory(category)} className={`shrink-0 rounded-full border px-5 py-2.5 text-sm font-semibold transition-colors ${activeCategory === category ? 'border-[#760314] bg-[#760314] text-white shadow-sm' : 'border-[#e1d5c9] bg-[#fffdfa] text-[#5f020f] hover:border-[#760314]'}`}>{category}</button>)}</div>}
         {loading ? <div className="py-24 text-center text-[#71686a]">Loading products…</div> : error ? <div className="py-24 text-center"><p className="font-semibold text-red-700">{error}</p><button onClick={() => window.location.reload()} className="mt-4 font-semibold text-[#760314] underline">Try again</button></div> : filtered.length === 0 ? <div className="rounded-2xl border border-[#e9e0d5] bg-[#fffdfa] py-20 text-center"><Package size={42} className="mx-auto mb-4 text-[#b8a9a0]"/><p className="text-xl font-bold text-[#5f020f]">No products available</p><p className="mt-2 text-[#71686a]">Please check back soon or try another search.</p></div> : (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
             {filtered.map(product => {
               const quantity = getProductQuantity(product.id);
               return <article key={product.id} className="group overflow-hidden rounded-2xl border border-[#e9e0d5] bg-[#fffdfa] shadow-sm transition-all hover:-translate-y-1 hover:border-[#d7bd9a] hover:shadow-lg">
-                <Link href={`/stationery/${product.id}`} className="relative flex h-56 items-center justify-center overflow-hidden bg-[#f1e9df] sm:h-64">
-                  {product.imageUrl ? <img src={product.imageUrl} alt={product.name} className="h-full w-full object-contain p-6 transition-transform duration-500 group-hover:scale-105"/> : <Package size={64} className="text-[#b8a9a0]"/>}
+                <Link href={`/stationery/${product.id}`} className="relative flex h-36 items-center justify-center overflow-hidden bg-[#f1e9df] sm:h-56 lg:h-64">
+                  {product.imageUrl ? <img src={product.imageUrl} alt={product.name} className="h-full w-full object-contain p-3 sm:p-6 transition-transform duration-500 group-hover:scale-105"/> : <Package size={64} className="text-[#b8a9a0]"/>}
                   {product.featured && <span className="absolute left-4 top-4 rounded-full bg-[#760314] px-3 py-1 text-xs font-bold text-white">Featured</span>}
                   {quantity > 0 && <span className="absolute right-4 top-4 rounded-full bg-[#e2ba5d] px-3 py-1 text-xs font-bold text-[#20191a]"><ShoppingCart size={12} className="mr-1 inline"/>{quantity}</span>}
                 </Link>
-                <div className="p-5">
-                  <p className="text-xs font-bold uppercase tracking-wider text-[#760314]">{product.category}</p>
-                  <Link href={`/stationery/${product.id}`}><h2 className="mt-2 line-clamp-2 text-lg font-bold text-[#20191a]">{product.name}</h2></Link>
-                  <p className="mt-2 line-clamp-2 min-h-10 text-sm text-[#71686a]">{product.description || 'Quality stationery for everyday use.'}</p>
-                  <div className="mt-5 flex items-center justify-between gap-3">
-                    <div><strong className="text-xl text-[#5f020f]">{product.price}</strong>{product.compareAt > 0 && product.compareAt > Number(product.price.replace(/[^0-9.]/g, '')) && <p className="text-xs text-[#91898a] line-through">{money(product.compareAt)}</p>}</div>
-                    <button disabled={product.stock < 1} onClick={() => add(product)} className="rounded-full bg-[#760314] p-3 text-white transition hover:bg-[#5f020f] disabled:cursor-not-allowed disabled:bg-[#b8a9a0]" aria-label="Add to cart"><ShoppingCart size={18}/></button>
-                    <Link href={`/stationery/${product.id}`} className="rounded-full border border-[#e9e0d5] bg-[#f7f3ea] p-3 text-[#760314] hover:bg-[#efe3d5]" aria-label="View product"><ChevronRight size={18}/></Link>
+                <div className="p-3 sm:p-5">
+                  <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-[#760314]">{product.category}</p>
+                  <Link href={`/stationery/${product.id}`}><h2 className="mt-1.5 line-clamp-2 text-sm sm:text-lg font-bold leading-snug text-[#20191a]">{product.name}</h2></Link>
+                  <p className="mt-1.5 line-clamp-2 min-h-9 text-xs sm:mt-2 sm:min-h-10 sm:text-sm text-[#71686a]">{product.description || 'Quality stationery for everyday use.'}</p>
+                  <div className="mt-3 flex items-center justify-between gap-2 sm:mt-5">
+                    <div className="min-w-0"><strong className="text-base sm:text-xl text-[#5f020f]">{product.price}</strong>{product.compareAt > 0 && product.compareAt > Number(product.price.replace(/[^0-9.]/g, '')) && <p className="text-xs text-[#91898a] line-through">{money(product.compareAt)}</p>}</div>
+                    <div className="flex shrink-0 items-center gap-1.5 sm:gap-2"><button disabled={product.stock < 1} onClick={() => add(product)} className="rounded-full bg-[#760314] p-2 sm:p-3 text-white transition hover:bg-[#5f020f] disabled:cursor-not-allowed disabled:bg-[#b8a9a0]" aria-label="Add to cart"><ShoppingCart size={18}/></button>
+                    <Link href={`/stationery/${product.id}`} className="rounded-full border border-[#e9e0d5] bg-[#f7f3ea] p-2 sm:p-3 text-[#760314] hover:bg-[#efe3d5]" aria-label={`View full details for ${product.name}`} title="View product details"><ChevronRight size={18}/></Link></div>
                   </div>
-                  <p className={`mt-3 text-xs font-semibold ${product.stock > 0 ? 'text-green-700' : 'text-red-700'}`}>{product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}</p>
+                  <p className={`mt-2 text-[10px] sm:mt-3 sm:text-xs font-semibold ${product.stock > 0 ? 'text-green-700' : 'text-red-700'}`}>{product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}</p>
                 </div>
               </article>;
             })}
