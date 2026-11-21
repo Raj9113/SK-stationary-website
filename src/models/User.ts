@@ -1,6 +1,7 @@
 import mongoose, { Schema, type Model } from "mongoose";
 
 export interface UserAddress {
+  _id?: mongoose.Types.ObjectId;
   label: string;
   line1: string;
   line2?: string;
