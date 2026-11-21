@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ShoppingCart, X, Minus, Plus, Trash2, CheckCircle2 } from 'lucide-react';
+import { ShoppingCart, X, Minus, Plus, Trash2, CheckCircle2, Home, BookOpen, FileText, UserRound } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 
 export default function Navbar() {
@@ -14,44 +14,39 @@ export default function Navbar() {
     setNotice(message);
     window.setTimeout(() => setNotice(current => current === message ? '' : current), 2600);
   };
-
-  const removeItem = (id: string, name: string) => {
-    removeFromCart(id);
-    notify(`${name} removed from your cart`);
-  };
-
-  const emptyCart = () => {
-    clearCart();
-    notify('Your cart has been emptied');
-  };
-
+  const removeItem = (id: string, name: string) => { removeFromCart(id); notify(`${name} removed from your cart`); };
+  const emptyCart = () => { clearCart(); notify('Your cart has been emptied'); };
   const changeQuantity = (id: string, name: string, quantity: number) => {
-    if (quantity <= 0) {
-      removeItem(id, name);
-      return;
-    }
+    if (quantity <= 0) { removeItem(id, name); return; }
     updateQuantity(id, quantity);
   };
 
   return (
     <>
-      <nav className="sticky top-0 z-50 border-b border-[#e9e0d5] bg-[#fffdfa]/95 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
-          <div className="flex items-center justify-between gap-3">
-            <Link href="/" className="min-w-0">
-              <span className="block text-lg sm:text-2xl font-bold tracking-tight text-[#760314]">S K Stationary</span>
-              <span className="block text-xs sm:text-sm font-semibold text-[#5f020f]">&amp; Janseva Kendr</span>
-            </Link>
-            <div className="flex items-center gap-2 sm:gap-5">
-              <Link href="/stationery" className="hidden sm:inline-flex px-3 py-2 text-sm font-semibold text-[#5f020f] hover:text-[#760314]">Shop</Link>
-              <button onClick={() => setIsCartOpen(!isCartOpen)} className="relative rounded-full bg-[#760314] p-3 text-white shadow-sm transition hover:bg-[#5f020f]" aria-label="Shopping cart">
-                <ShoppingCart size={20}/>
-                {cartItemCount > 0 && <span className="absolute -right-1.5 -top-1.5 grid h-5 min-w-5 place-items-center rounded-full bg-[#e2ba5d] px-1 text-xs font-bold text-[#20191a]">{cartItemCount}</span>}
-              </button>
-            </div>
+      <header className="sticky top-0 z-50 border-b border-[#e9e0d5] bg-[#fffdfa]/95 shadow-sm backdrop-blur-md">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+          <Link href="/" className="flex min-w-0 items-center gap-2.5">
+            <img src="/sk-seal.svg" alt="" className="h-11 w-11 shrink-0 object-contain sm:h-14 sm:w-14"/>
+            <span className="min-w-0"><strong className="block truncate text-base font-extrabold tracking-tight text-[#760314] sm:text-xl">S K Stationary</strong><span className="block text-xs font-semibold text-[#5f020f] sm:text-sm">&amp; Janseva Kendr</span></span>
+          </Link>
+          <div className="flex items-center gap-2 sm:gap-4">
+            <Link href="/account/profile" aria-label="Account" className="rounded-full border border-[#e9e0d5] p-2.5 text-[#760314] hover:bg-[#f7f3ea]"><UserRound size={19}/></Link>
+            <button onClick={() => setIsCartOpen(!isCartOpen)} className="relative rounded-full bg-[#760314] p-3 text-white shadow-sm transition hover:bg-[#5f020f]" aria-label="Shopping cart">
+              <ShoppingCart size={20}/>
+              {cartItemCount > 0 && <span className="absolute -right-1.5 -top-1.5 grid h-5 min-w-5 place-items-center rounded-full bg-[#e2ba5d] px-1 text-xs font-bold text-[#20191a]">{cartItemCount}</span>}
+            </button>
           </div>
         </div>
-      </nav>
+        <nav aria-label="Main navigation" className="border-t border-[#f0e8df]">
+          <div className="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-3 py-1.5 sm:gap-3 sm:px-6">
+            <Link href="/" className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-xs font-bold text-[#5f020f] hover:bg-[#f7f3ea] sm:text-sm"><Home size={15}/> Home</Link>
+            <Link href="/stationery" className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-xs font-bold text-[#5f020f] hover:bg-[#f7f3ea] sm:text-sm"><ShoppingCart size={15}/> Stationery Store</Link>
+            <Link href="/janseva-kendr" className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-xs font-bold text-[#5f020f] hover:bg-[#f7f3ea] sm:text-sm"><FileText size={15}/> Online Services</Link>
+            <Link href="/offers" className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-xs font-bold text-[#5f020f] hover:bg-[#f7f3ea] sm:text-sm"><BookOpen size={15}/> Offers</Link>
+            <Link href="/stationery?sort=new" className="inline-flex shrink-0 items-center rounded-full px-3 py-2 text-xs font-bold text-[#5f020f] hover:bg-[#f7f3ea] sm:text-sm">New Arrivals</Link>
+          </div>
+        </nav>
+      </header>
 
       {isCartOpen && (
         <>
@@ -79,7 +74,6 @@ export default function Navbar() {
           </aside>
         </>
       )}
-
       {notice && <div role="status" aria-live="polite" className="fixed bottom-5 left-1/2 z-[60] flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-2 rounded-xl bg-[#5f020f] px-4 py-3 text-sm font-semibold text-white shadow-xl"><CheckCircle2 size={18} className="shrink-0 text-[#e2ba5d]"/><span>{notice}</span></div>}
     </>
   );
