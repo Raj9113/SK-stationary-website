@@ -1,457 +1,113 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTheme } from '@/context/ThemeContext';
-import { ChevronRight, ShoppingCart } from 'lucide-react';
+import { ChevronRight, ShoppingCart, Search, Package } from 'lucide-react';
 import Link from 'next/link';
-import { useCart } from '@/context/CartContext';
+import { useCart, type CartProduct } from '@/context/CartContext';
 
-interface Product {
-  id: number;
-  name: string;
-  category: string;
-  price: string;
-  image: string;
-  description: string;
-  badge?: string;
-}
+type StoreProduct = CartProduct & {
+  stock: number;
+  compareAt: number;
+  featured: boolean;
+  imageUrl: string;
+};
 
-interface Category {
-  id: string;
-  label: string;
-}
-
-const products: Product[] = [
-  {
-    id: 1,
-    name: 'Pro Max',
-    category: 'copy',
-    price: '$1,199',
-    image: '🍎',
-    description: 'Stunning display. Lightning-fast performance.',
-    badge: 'New',
-  },
-  {
-    id: 2,
-    name: 'Pro',
-    category: 'copy',
-    price: '$999',
-    image: '📱',
-    description: 'Powerful. Advanced camera. All-day battery.',
-  },
-  {
-    id: 3,
-    name: 'Standard',
-    category: 'copy',
-    price: '$799',
-    image: '📲',
-    description: 'The latest in technology.',
-  },
-  {
-    id: 4,
-    name: 'Ultra',
-    category: 'Pen',
-    price: '$799',
-    image: '⌚',
-    description: 'Titanium. Action button. Rugged design.',
-    badge: 'New',
-  },
-  {
-    id: 5,
-    name: 'Pro',
-    category: 'Pen',
-    price: '$399',
-    image: '⏱️',
-    description: 'Advanced health tracking.',
-  },
-  {
-    id: 6,
-    name: 'SE',
-    category: 'Pen',
-    price: '$249',
-    image: '⌛',
-    description: 'Essential features. Essential price.',
-  },
-  {
-    id: 7,
-    name: 'MacBook Pro',
-    category: 'Book',
-    price: '$1,999',
-    image: '💻',
-    description: 'Incredible performance. Stunning display.',
-    badge: 'New',
-  },
-  {
-    id: 8,
-    name: 'MacBook Air',
-    category: 'Book',
-    price: '$1,199',
-    image: '🖥️',
-    description: 'Powerful. Ultraportable.',
-  },
-  {
-    id: 9,
-    name: 'iMac',
-    category: 'Book',
-    price: '$1,499',
-    image: '🖨️',
-    description: '24-inch. All-in-one. Colorful.',
-  },
-  {
-    id: 10,
-    name: 'Air',
-    category: 'Sketch',
-    price: '$599',
-    image: '📔',
-    description: 'Thin. Powerful. Colorful.',
-  },
-  {
-    id: 11,
-    name: 'Pro',
-    category: 'Sketch',
-    price: '$1,099',
-    image: '📱',
-    description: 'The ultimate iPad experience.',
-    badge: 'New',
-  },
-  {
-    id: 12,
-    name: 'Mini',
-    category: 'Pencil',
-    price: '$499',
-    image: '📲',
-    description: 'Powerful. Portable. Intelligent.',
-  },
-];
-
-const categories: Category[] = [
-  { id: 'all', label: 'All Products' },
-  { id: 'copy', label: 'Copies' },
-  { id: 'Pen', label: 'Pens' },
-  { id: 'Book', label: 'Books' },
-  { id: 'Sketch', label: 'Sketches' },
-  { id: 'Cardboard', label: 'Cardboards' },
-  { id: 'Diary', label: 'Diaries' },
-  { id: 'Pencil', label: 'Penciles' },
-];
+const money = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(value);
+const mapProduct = (item: Record<string, unknown>): StoreProduct => ({
+  id: String(item._id),
+  name: String(item.name || ''),
+  category: String(item.category || 'Other'),
+  price: money(Number(item.price) || 0),
+  image: typeof item.image === 'string' ? item.image : '',
+  imageUrl: typeof item.image === 'string' ? item.image : '',
+  description: String(item.description || ''),
+  stock: Number(item.stock) || 0,
+  compareAt: Number(item.compareAt) || 0,
+  featured: item.featured === true,
+});
 
 export default function ProductPage() {
-  const [activeCategory, setActiveCategory] = useState<string>('all');
   const { isDark } = useTheme();
-  const [toast, setToast] = useState<{ show: boolean; message: string; productName?: string }>({ 
-    show: false, 
-    message: '',
-    productName: ''
-  });
-
   const { addToCart, getProductQuantity } = useCart();
+  const [products, setProducts] = useState<StoreProduct[]>([]);
+  const [activeCategory, setActiveCategory] = useState('All');
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [toast, setToast] = useState('');
 
-  const filteredProducts: Product[] =
-    activeCategory === 'all'
-      ? products
-      : products.filter((p) => p.category === activeCategory);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const response = await fetch('/api/products', { cache: 'no-store' });
+        const data = await response.json();
+        if (!response.ok || !data.ok) throw new Error(data.message || 'Unable to load products.');
+        if (!cancelled) setProducts((data.products || []).map(mapProduct));
+      } catch (err) {
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Unable to load products.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
-  const showToast = (productName: string) => {
-    setToast({ show: true, message: 'Product added to cart.', productName });
-    setTimeout(() => {
-      setToast({ show: false, message: '', productName: '' });
-    }, 3000);
-  };
+  const categories = useMemo(() => ['All', ...Array.from(new Set(products.map(product => product.category)))], [products]);
+  const filtered = useMemo(() => products.filter(product =>
+    (activeCategory === 'All' || product.category === activeCategory) &&
+    [product.name, product.category, product.description].join(' ').toLowerCase().includes(search.toLowerCase())
+  ), [products, activeCategory, search]);
 
-  const handleAddToCart = (product: Product) => {
-    addToCart(product);
-    showToast(product.name);
+  const add = (product: StoreProduct) => {
+    if (product.stock < 1) return;
+    addToCart({ id: product.id, name: product.name, category: product.category, price: product.price, image: product.image, description: product.description });
+    setToast(product.name + ' added to cart');
+    window.setTimeout(() => setToast(''), 2500);
   };
 
   return (
-    <div className={isDark ? 'min-h-screen bg-black' : 'min-h-screen bg-white'}>
-      {/* Toast Notification */}
-      {toast.show && (
-        <div className={`fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-toast-in ${
-          isDark ? 'bg-green-600' : 'bg-green-500'
-        } text-white px-8 py-4 rounded-full shadow-2xl flex items-center gap-3 backdrop-blur-sm border border-green-400/30`}>
-          <div className="flex items-center gap-3">
-            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-            <span className="font-semibold">{toast.message}</span>
-            <span className="text-sm opacity-90">{toast.productName}</span>
-          </div>
-        </div>
-      )}
-
-      {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-6 py-20 text-center">
-        <div className="space-y-6 animate-fade-in">
-          <h2 className={`text-6xl md:text-7xl font-bold ${
-            isDark ? 'text-white' : 'text-black'
-          } leading-tight tracking-tight`}>
-            Explore Our Collection
-          </h2>
-          <p className={`text-xl ${
-            isDark ? 'text-gray-400' : 'text-gray-600'
-          } max-w-2xl mx-auto leading-relaxed`}>
-            Discover the latest innovations. Beautifully designed. Brilliantly
-            powerful.
-          </p>
+    <div className={isDark ? 'min-h-screen bg-black text-white' : 'min-h-screen bg-white text-gray-950'}>
+      <section className="max-w-7xl mx-auto px-6 py-16 text-center">
+        <p className="text-sm font-bold uppercase tracking-[0.25em] text-blue-600 mb-4">S K Stationery & Janseva Kendr</p>
+        <h1 className="text-4xl md:text-6xl font-bold tracking-tight">Stationery essentials, all in one place</h1>
+        <p className={`text-lg mt-5 max-w-2xl mx-auto ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Browse our available stationery, school and office supplies.</p>
+        <div className="max-w-xl mx-auto mt-8 relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={19}/>
+          <input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search products..." className={`w-full rounded-full border py-3 pl-12 pr-5 outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-900 border-gray-700 text-white' : 'bg-gray-50 border-gray-200'}`}/>
         </div>
       </section>
 
-      {/* Category Tabs */}
-      <section className="max-w-7xl mx-auto px-6 mb-16">
-        <div className="flex gap-3 overflow-x-auto pb-4 md:pb-0 md:justify-center">
-          {categories.map((category) => (
-            <button
-              key={category.id}
-              onClick={() => setActiveCategory(category.id)}
-              className={`whitespace-nowrap px-6 py-3 rounded-full text-sm font-medium transition-all duration-300 ${
-                activeCategory === category.id
-                  ? isDark
-                    ? 'bg-white text-black shadow-lg'
-                    : 'bg-black text-white shadow-lg'
-                  : isDark
-                  ? 'bg-gray-900 text-gray-300 hover:bg-gray-800 border border-gray-700'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              {category.label}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {/* Products Grid */}
-      <section className="max-w-7xl mx-auto px-6 pb-32">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredProducts.map((product, index) => {
-            const quantity = getProductQuantity(product.id);
-            return (
-              <div
-                key={product.id}
-                className="group cursor-pointer"
-                style={{
-                  animationDelay: `${index * 50}ms`,
-                }}
-              >
-                {/* Product Card */}
-                <div className={`relative rounded-3xl p-12 overflow-hidden transition-all duration-500 hover:shadow-2xl ${
-                  isDark 
-                    ? 'bg-linear-to-br from-gray-900 to-black border border-gray-800 hover:border-gray-700' 
-                    : 'bg-linear-to-br from-gray-50 to-gray-100 border border-gray-200 hover:border-gray-300'
-                }`}>
-                  {/* Glow effect on hover */}
-                  <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${
-                    isDark 
-                      ? 'bg-linear-to-br from-gray-800/30 to-transparent' 
-                      : 'bg-linear-to-br from-white/50 to-transparent'
-                  }`} />
-
-                  {/* Badge */}
-                  {product.badge && (
-                    <div className="absolute top-6 right-6 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                      {product.badge}
-                    </div>
-                  )}
-
-                  {/* Quantity Badge on Product Card */}
-                  {quantity > 0 && (
-                    <div className="absolute top-6 left-6 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-2 animate-bounce">
-                      <ShoppingCart size={12} />
-                      {quantity}
-                    </div>
-                  )}
-
-                  {/* Product Image */}
-                  <div className="relative h-64 flex items-center justify-center mb-8 transform group-hover:scale-110 transition-transform duration-500">
-                    <span className="text-8xl">{product.image}</span>
-                  </div>
-
-                  {/* Product Info */}
-                  <div className="relative space-y-4">
-                    <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
-                      {product.category}
-                    </p>
-                    <h3 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-black'} leading-tight`}>
-                      {product.name}
-                    </h3>
-                    <p className={`text-base leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                      {product.description}
-                    </p>
-                    <div className="flex items-center justify-between pt-6">
-                      <span className={`text-2xl font-semibold ${isDark ? 'text-white' : 'text-black'}`}>
-                        {product.price}
-                      </span>
-                      <div className="flex gap-3">
-                        {/* Add to Cart Button */}
-                        <button
-                          onClick={() => handleAddToCart(product)}
-                          className={`w-10 h-10 rounded-full flex items-center justify-center transform group-hover:translate-x-1 transition-all duration-300 ${
-                            isDark 
-                              ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                              : 'bg-blue-600 text-white hover:bg-blue-700'
-                          }`}
-                          title="Add to cart"
-                        >
-                          <ShoppingCart size={20} />
-                        </button>
-
-                        {/* Link to Detail Page */}
-                        <Link
-                          href={`/stationery/${product.id}`}
-                          className={`w-10 h-10 rounded-full flex items-center justify-center transform group-hover:translate-x-1 transition-transform duration-300 ${
-                            isDark ? 'bg-white text-black' : 'bg-black text-white'
-                          }`}
-                        >
-                          <ChevronRight size={20} />
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Learn More Link */}
-                <Link
-                  href={`/stationery/${product.id}`}
-                  className={`mt-4 text-sm font-semibold flex items-center gap-1 group/link transition-colors ${
-                    isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
-                  }`}
-                >
-                  Learn more
-                  <ChevronRight
-                    size={16}
-                    className="transform group-hover/link:translate-x-1 transition-transform"
-                  />
+      <section className="max-w-7xl mx-auto px-6 pb-24">
+        {categories.length > 1 && <div className="flex gap-2 overflow-x-auto pb-5 mb-8">{categories.map(category => <button key={category} onClick={() => setActiveCategory(category)} className={`shrink-0 rounded-full px-5 py-2.5 text-sm font-semibold transition-colors ${activeCategory === category ? 'bg-blue-600 text-white' : isDark ? 'bg-gray-900 text-gray-300 border border-gray-800' : 'bg-gray-100 text-gray-700'}`}>{category}</button>)}</div>}
+        {loading ? <div className="py-24 text-center text-gray-500">Loading products…</div> : error ? <div className="py-24 text-center"><p className="text-red-500 font-semibold">{error}</p><button onClick={() => window.location.reload()} className="mt-4 text-blue-600 font-semibold">Try again</button></div> : filtered.length === 0 ? <div className="py-24 text-center"><Package size={42} className="mx-auto mb-4 text-gray-400"/><p className="text-xl font-semibold">No products available</p><p className="text-gray-500 mt-2">Please check back soon or try another search.</p></div> : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filtered.map(product => {
+              const quantity = getProductQuantity(product.id);
+              return <article key={product.id} className={`group rounded-2xl border overflow-hidden transition-all hover:-translate-y-1 hover:shadow-xl ${isDark ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200'}`}>
+                <Link href={`/stationery/${product.id}`} className={`relative h-64 flex items-center justify-center overflow-hidden ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+                  {product.imageUrl ? <img src={product.imageUrl} alt={product.name} className="w-full h-full object-contain p-6 transition-transform duration-500 group-hover:scale-105"/> : <Package size={64} className="text-gray-300"/>}
+                  {product.featured && <span className="absolute top-4 left-4 rounded-full bg-blue-600 text-white px-3 py-1 text-xs font-bold">Featured</span>}
+                  {quantity > 0 && <span className="absolute top-4 right-4 rounded-full bg-gray-950 text-white px-3 py-1 text-xs font-bold"><ShoppingCart size={12} className="inline mr-1"/>{quantity}</span>}
                 </Link>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* No products message */}
-        {filteredProducts.length === 0 && (
-          <div className="text-center py-20">
-            <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'} text-lg`}>
-              No products found
-            </p>
+                <div className="p-5">
+                  <p className="text-xs font-bold uppercase tracking-wider text-blue-600">{product.category}</p>
+                  <Link href={`/stationery/${product.id}`}><h2 className="mt-2 text-xl font-bold line-clamp-2">{product.name}</h2></Link>
+                  <p className={`mt-2 text-sm line-clamp-2 min-h-10 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{product.description || 'Quality stationery for everyday use.'}</p>
+                  <div className="flex items-center justify-between mt-5 gap-3">
+                    <div><strong className="text-xl">{product.price}</strong>{product.compareAt > 0 && product.compareAt > Number(product.price.replace(/[^0-9.]/g, '')) && <p className="text-xs text-gray-400 line-through">{money(product.compareAt)}</p>}</div>
+                    <button disabled={product.stock < 1} onClick={() => add(product)} className="rounded-full bg-blue-600 text-white p-3 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed" aria-label="Add to cart"><ShoppingCart size={18}/></button>
+                    <Link href={`/stationery/${product.id}`} className={`rounded-full p-3 ${isDark ? 'bg-white text-black' : 'bg-gray-950 text-white'}`} aria-label="View product"><ChevronRight size={18}/></Link>
+                  </div>
+                  <p className={`mt-3 text-xs font-semibold ${product.stock > 0 ? 'text-green-600' : 'text-red-500'}`}>{product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}</p>
+                </div>
+              </article>;
+            })}
           </div>
         )}
       </section>
-
-      {/* Footer */}
-      <footer className={`py-12 transition-colors duration-300 ${
-        isDark ? 'bg-gray-950 text-white border-gray-800' : 'bg-gray-50 text-gray-900 border-gray-200'
-      } border-t`}>
-        <div className="max-w-7xl mx-auto px-6">
-          <div className={`grid grid-cols-2 md:grid-cols-4 gap-8 pb-8 ${
-            isDark ? 'border-gray-800' : 'border-gray-200'
-          } border-b`}>
-            <div>
-              <h4 className="font-semibold mb-4">Shop</h4>
-              <ul className={`space-y-2 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                <li>
-                  <a href="#" className={`transition-colors ${isDark ? 'hover:text-white' : 'hover:text-gray-900'}`}>
-                    Stationery
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className={`transition-colors ${isDark ? 'hover:text-white' : 'hover:text-gray-900'}`}>
-                    Books
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className={`transition-colors ${isDark ? 'hover:text-white' : 'hover:text-gray-900'}`}>
-                    Supplies
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Support</h4>
-              <ul className={`space-y-2 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                <li>
-                  <a href="#" className={`transition-colors ${isDark ? 'hover:text-white' : 'hover:text-gray-900'}`}>
-                    Help
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className={`transition-colors ${isDark ? 'hover:text-white' : 'hover:text-gray-900'}`}>
-                    Contact
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Company</h4>
-              <ul className={`space-y-2 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                <li>
-                  <a href="#" className={`transition-colors ${isDark ? 'hover:text-white' : 'hover:text-gray-900'}`}>
-                    About
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className={`transition-colors ${isDark ? 'hover:text-white' : 'hover:text-gray-900'}`}>
-                    Press
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Legal</h4>
-              <ul className={`space-y-2 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                <li>
-                  <a href="#" className={`transition-colors ${isDark ? 'hover:text-white' : 'hover:text-gray-900'}`}>
-                    Privacy
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className={`transition-colors ${isDark ? 'hover:text-white' : 'hover:text-gray-900'}`}>
-                    Terms
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className={`pt-8 text-center text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-            <p>&copy; 2024 S K Stationery. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
-
-      {/* Animations */}
-      <style jsx>{`
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes toast-in {
-          from {
-            opacity: 0;
-            transform: translate(-50%, -20px);
-          }
-          to {
-            opacity: 1;
-            transform: translate(-50%, 0);
-          }
-        }
-
-        .animate-fade-in {
-          animation: fade-in 0.8s ease-out;
-        }
-
-        .animate-toast-in {
-          animation: toast-in 0.4s ease-out;
-        }
-
-        .group {
-          animation: fade-in 0.6s ease-out forwards;
-          opacity: 0;
-        }
-      `}</style>
+      {toast && <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 rounded-full bg-green-600 text-white px-6 py-3 shadow-xl font-semibold">{toast}</div>}
     </div>
   );
 }
