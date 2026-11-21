@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import { connectToDatabase } from "@/lib/mongodb";
 import { getAdminAccess } from "@/lib/admin-auth";
+import { normalizeProduct } from "@/lib/product-validation";
 import Product from "@/models/Product";
-import { POST as createProduct } from "../route";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -47,7 +47,6 @@ export async function PATCH(request: Request, context: Context) {
       featured: body.featured ?? existing.featured,
     };
 
-    const { normalizeProduct } = await import("@/lib/product-validation");
     const normalized = normalizeProduct(merged);
     if ("error" in normalized) return NextResponse.json({ ok: false, message: normalized.error }, { status: 400 });
 
