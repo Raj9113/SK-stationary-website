@@ -1,46 +1,17 @@
-"use client";
-import "./admin.css";
+import { redirect } from "next/navigation";
 
-import { useEffect, useMemo, useState } from "react";
-import { Plus, Search, Pencil, Trash2, Package, IndianRupee, Boxes, AlertTriangle, X, Save, Image as ImageIcon, Star, Eye, LayoutDashboard, Tags, Settings, ArrowUpRight } from "lucide-react";
+import { getAdminAccess } from "@/lib/admin-auth";
+import AdminDashboardClient from "./AdminDashboardClient";
 
-type Product = { id:string; name:string; sku:string; category:string; price:number; compareAt:number; stock:number; description:string; image:string; status:"Active"|"Draft"; featured:boolean };
-const starter:Product[] = [
- {id:"p-001",name:"Classmate Notebook",sku:"NB-200",category:"Notebooks & Registers",price:85,compareAt:100,stock:42,description:"200 page ruled notebook",image:"",status:"Active",featured:true},
- {id:"p-002",name:"Cello Ball Pen Pack",sku:"PN-010",category:"Pens & Writing",price:120,compareAt:140,stock:18,description:"Pack of 10 blue ball pens",image:"",status:"Active",featured:true},
- {id:"p-003",name:"A4 Printing Paper",sku:"PP-A4",category:"Printing & Paper",price:295,compareAt:320,stock:6,description:"500 sheets, 75 GSM",image:"",status:"Active",featured:false},
- {id:"p-004",name:"Camlin Colour Pencils",sku:"AR-024",category:"Art & Craft",price:180,compareAt:200,stock:0,description:"24 shade colour pencil set",image:"",status:"Draft",featured:false},
-];
-const empty:Product={id:"",name:"",sku:"",category:"Notebooks & Registers",price:0,compareAt:0,stock:0,description:"",image:"",status:"Draft",featured:false};
-const money=(n:number)=>new Intl.NumberFormat("en-IN",{style:"currency",currency:"INR",maximumFractionDigits:0}).format(n);
-export default function AdminDashboard(){
- const [products,setProducts]=useState<Product[]>(starter);
- const [ready,setReady]=useState(false);
- const [query,setQuery]=useState("");
- const [filter,setFilter]=useState("All");
- const [editing,setEditing]=useState<Product|null>(null);
- const [form,setForm]=useState<Product>(empty);
- const [notice,setNotice]=useState("");
- useEffect(()=>{try{const saved=localStorage.getItem("sk-admin-products");if(saved)setProducts(JSON.parse(saved));}catch{}setReady(true)},[]);
- const persist=(next:Product[])=>{setProducts(next);localStorage.setItem("sk-admin-products",JSON.stringify(next));setNotice("Saved in this browser preview.");};
- const filtered=useMemo(()=>products.filter(p=>(filter==="All"||p.status===filter)&&[p.name,p.sku,p.category].join(" ").toLowerCase().includes(query.toLowerCase())),[products,filter,query]);
- const openNew=()=>{setForm({...empty,id:"SK-"+Math.random().toString(36).slice(2,7).toUpperCase()});setEditing(null)};
- const openEdit=(p:Product)=>{setForm({...p});setEditing(p)};
- const save=()=>{if(!form.name.trim()||!form.sku.trim()||form.price<0||form.stock<0){setNotice("Add a product name, SKU, valid price and stock.");return}const next=editing?products.map(p=>p.id===editing.id?form:p):[form,...products];persist(next);setEditing(null);setForm(empty)};
- const remove=(id:string)=>{if(!confirm("Delete this product from the local preview?"))return;persist(products.filter(p=>p.id!==id))};
- const low=products.filter(p=>p.stock>0&&p.stock<=10).length;
- const out=products.filter(p=>p.stock===0).length;
- return <div className="admin-root"><aside className="admin-sidebar"><div className="admin-brand"><span className="admin-seal">SK</span><div><b>S K Stationary</b><small>Admin workspace</small></div></div><div className="admin-nav-label">WORKSPACE</div><a className="admin-nav active"><LayoutDashboard/> Overview</a><a className="admin-nav"><Package/> Products</a><a className="admin-nav"><Tags/> Categories</a><a className="admin-nav"><Settings/> Store settings</a><div className="admin-sidebar-bottom"><span className="admin-avatar">SK</span><div><b>Store Admin</b><small>Preview mode</small></div></div></aside>
- <main className="admin-main"><header className="admin-top"><div><span className="admin-breadcrumb">Workspace / Products</span><h1>Product dashboard</h1><p>Manage your stationery catalogue and inventory.</p></div><a href="/" className="admin-view"><Eye size={17}/> View storefront <ArrowUpRight size={15}/></a></header>
- <div className="admin-warning"><AlertTriangle size={18}/><span><b>Preview dashboard:</b> changes are saved only in this browser using local storage. It is not connected to a database or protected by admin login yet. Do not use for live inventory management.</span></div>
- <section className="admin-stats"><article><span>Total products</span><strong>{products.length}</strong><small><Package/> In your catalogue</small></article><article><span>Active products</span><strong>{products.filter(p=>p.status==="Active").length}</strong><small><Eye/> Visible status</small></article><article><span>Low stock</span><strong>{low}</strong><small><AlertTriangle/> 10 units or fewer</small></article><article><span>Out of stock</span><strong>{out}</strong><small><Boxes/> Needs restocking</small></article></section>
- <section className="admin-panel"><div className="admin-panel-heading"><div><h2>Products</h2><p>Add, edit and organise your store items.</p></div><button className="admin-primary" onClick={openNew}><Plus size={18}/> Add product</button></div>
- <div className="admin-toolbar"><label className="admin-search"><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search by product, SKU or category"/></label><select value={filter} onChange={e=>setFilter(e.target.value)}><option>All</option><option>Active</option><option>Draft</option></select></div>
- <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>PRODUCT</th><th>SKU</th><th>CATEGORY</th><th>PRICE</th><th>STOCK</th><th>STATUS</th><th>ACTIONS</th></tr></thead><tbody>{filtered.map(p=><tr key={p.id}><td><div className="admin-product-cell"><div className="admin-thumb">{p.image?<img src={p.image} alt=""/>:<ImageIcon/>}</div><div><b>{p.name}</b><small>{p.featured?"★ Featured":p.description}</small></div></div></td><td>{p.sku}</td><td>{p.category}</td><td><b>{money(p.price)}</b>{p.compareAt>p.price&&<small className="admin-old-price">{money(p.compareAt)}</small>}</td><td><span className={p.stock===0?"stock-out":p.stock<=10?"stock-low":"stock-ok"}>{p.stock} units</span></td><td><span className={p.status==="Active"?"status-active":"status-draft"}>{p.status}</span></td><td><div className="admin-actions"><button onClick={()=>openEdit(p)} aria-label="Edit product"><Pencil size={16}/></button><button onClick={()=>remove(p.id)} aria-label="Delete product"><Trash2 size={16}/></button></div></td></tr>)}</tbody></table>{filtered.length===0&&<div className="admin-empty">No products match your search.</div>}</div>
- </section>
- <p className="admin-footnote">Product fields supported in this dashboard preview: name, SKU, category, selling price, compare-at price, stock quantity, description, image URL, publication status and featured flag.</p>
- </main>
- {form.id&&<div className="admin-modal-backdrop" onClick={()=>{setForm(empty);setEditing(null)}}><section className="admin-modal" onClick={e=>e.stopPropagation()}><header><div><span className="admin-breadcrumb">{editing?"EDIT PRODUCT":"NEW LISTING"}</span><h2>{editing?"Update product":"Add a product"}</h2></div><button className="admin-close" onClick={()=>{setForm(empty);setEditing(null)}}><X/></button></header><div className="admin-form-grid"><label className="wide">Product name<input value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="e.g. Classmate long notebook"/></label><label>SKU / Item code<input value={form.sku} onChange={e=>setForm({...form,sku:e.target.value})} placeholder="e.g. NB-200"/></label><label>Category<select value={form.category} onChange={e=>setForm({...form,category:e.target.value})}>{["Notebooks & Registers","Pens & Writing","Art & Craft","Files & Folders","Printing & Paper","School Essentials","Office Stationery","Inks & Refills","Exam & Academic","Other"].map(c=><option key={c}>{c}</option>)}</select></label><label>Selling price (₹)<input type="number" min="0" value={form.price} onChange={e=>setForm({...form,price:Number(e.target.value)})}/></label><label>MRP / Compare price (₹)<input type="number" min="0" value={form.compareAt} onChange={e=>setForm({...form,compareAt:Number(e.target.value)})}/></label><label>Stock quantity<input type="number" min="0" value={form.stock} onChange={e=>setForm({...form,stock:Number(e.target.value)})}/></label><label>Publication status<select value={form.status} onChange={e=>setForm({...form,status:e.target.value as Product["status"]})}><option>Draft</option><option>Active</option></select></label><label className="wide">Product image URL<input value={form.image} onChange={e=>setForm({...form,image:e.target.value})} placeholder="https://..."/></label><label className="wide">Description<textarea rows={3} value={form.description} onChange={e=>setForm({...form,description:e.target.value})} placeholder="Product details, size, pages, colour, pack quantity..."/></label><label className="admin-check"><input type="checkbox" checked={form.featured} onChange={e=>setForm({...form,featured:e.target.checked})}/><Star size={16}/> Feature this product</label></div><footer><button className="admin-secondary" onClick={()=>{setForm(empty);setEditing(null)}}>Cancel</button><button className="admin-primary" onClick={save}><Save size={17}/> Save product</button></footer></section></div>}
- {notice&&<button className="admin-toast" onClick={()=>setNotice("")}>{notice} <X size={14}/></button>}
- </div>;
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+export default async function AdminPage() {
+  const access = await getAdminAccess();
+
+  if (!access.authorized) {
+    redirect(access.reason === "unauthenticated" ? "/account/login" : "/");
+  }
+
+  return <AdminDashboardClient />;
 }
