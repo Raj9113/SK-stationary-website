@@ -54,11 +54,8 @@ export default function ProductPage() {
   return (
     <main className="min-h-screen bg-[#f7f3ea] text-[#20191a]">
       <section className="border-b border-[#e9e0d5] bg-gradient-to-br from-[#fffdfa] via-[#f8f0e5] to-[#f1e5d8]">
-        <div className="mx-auto max-w-7xl px-4 py-10 text-center sm:px-6 sm:py-14">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-[#760314] sm:text-sm">S K Stationary &amp; Janseva Kendr</p>
-          <h1 className="text-3xl font-bold tracking-tight text-[#5f020f] sm:text-5xl">Stationery essentials, all in one place</h1>
-          <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-[#71686a] sm:text-lg">Browse our available stationery, school and office supplies.</p>
-          <div className="relative mx-auto mt-7 max-w-xl">
+        <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-7">
+          <div className="relative mx-auto max-w-xl">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8c7b78]" size={19}/>
             <input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search products..." className="w-full rounded-xl border border-[#d9cbbd] bg-white py-3 pl-12 pr-5 text-[#20191a] outline-none transition focus:border-[#760314] focus:ring-2 focus:ring-[#760314]/15"/>
           </div>
