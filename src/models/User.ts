@@ -15,6 +15,8 @@ export interface UserAddress {
 
 export interface UserRecord {
   name: string;
+  avatarUrl?: string;
+  profilePhotoData?: string;
   dateOfBirth: Date;
   mobile: string;
   backupMobile?: string;
@@ -41,6 +43,8 @@ const AddressSchema = new Schema<UserAddress>({
 
 const UserSchema = new Schema<UserRecord>({
   name: { type: String, required: true, trim: true, maxlength: 100 },
+  avatarUrl: { type: String, trim: true, maxlength: 2048, default: "" },
+  profilePhotoData: { type: String, maxlength: 1500000, default: "" },
   dateOfBirth: { type: Date, required: true },
   mobile: { type: String, trim: true, maxlength: 20, default: "" },
   backupMobile: { type: String, trim: true, maxlength: 20 },
