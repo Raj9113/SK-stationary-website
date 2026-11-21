@@ -2,8 +2,8 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-interface Product {
-  id: number;
+export interface CartProduct {
+  id: string;
   name: string;
   category: string;
   price: string;
@@ -12,16 +12,13 @@ interface Product {
   badge?: string;
 }
 
-interface CartItem extends Product {
-  quantity: number;
-}
-
+interface CartItem extends CartProduct { quantity: number; }
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (product: Product) => void;
-  removeFromCart: (productId: number) => void;
-  updateQuantity: (productId: number, quantity: number) => void;
-  getProductQuantity: (productId: number) => number;
+  addToCart: (product: CartProduct) => void;
+  removeFromCart: (productId: string) => void;
+  updateQuantity: (productId: string, quantity: number) => void;
+  getProductQuantity: (productId: string) => number;
   cartTotal: number;
   cartItemCount: number;
 }
@@ -31,69 +28,31 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
 
-  const addToCart = (product: Product) => {
-    setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item.id === product.id);
-      if (existingItem) {
-        return prevCart.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      }
-      return [...prevCart, { ...product, quantity: 1 }];
+  const addToCart = (product: CartProduct) => {
+    setCart(current => {
+      const existing = current.find(item => item.id === product.id);
+      return existing
+        ? current.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item)
+        : [...current, { ...product, quantity: 1 }];
     });
   };
 
-  const removeFromCart = (productId: number) => {
-    setCart((prevCart) => prevCart.filter((item) => item.id !== productId));
+  const removeFromCart = (productId: string) => setCart(current => current.filter(item => item.id !== productId));
+
+  const updateQuantity = (productId: string, quantity: number) => {
+    if (quantity <= 0) { removeFromCart(productId); return; }
+    setCart(current => current.map(item => item.id === productId ? { ...item, quantity } : item));
   };
 
-  const updateQuantity = (productId: number, quantity: number) => {
-    if (quantity <= 0) {
-      removeFromCart(productId);
-      return;
-    }
-    setCart((prevCart) =>
-      prevCart.map((item) =>
-        item.id === productId ? { ...item, quantity } : item
-      )
-    );
-  };
-
-  const getProductQuantity = (productId: number): number => {
-    const cartItem = cart.find((item) => item.id === productId);
-    return cartItem ? cartItem.quantity : 0;
-  };
-
-  const cartTotal = cart.reduce((total, item) => {
-    const price = parseFloat(item.price.replace('$', ''));
-    return total + price * item.quantity;
-  }, 0);
-
+  const getProductQuantity = (productId: string) => cart.find(item => item.id === productId)?.quantity ?? 0;
+  const cartTotal = cart.reduce((total, item) => total + (Number(item.price.replace(/[^0-9.]/g, "")) || 0) * item.quantity, 0);
   const cartItemCount = cart.reduce((count, item) => count + item.quantity, 0);
 
-  return (
-    <CartContext.Provider
-      value={{
-        cart,
-        addToCart,
-        removeFromCart,
-        updateQuantity,
-        getProductQuantity,
-        cartTotal,
-        cartItemCount,
-      }}
-    >
-      {children}
-    </CartContext.Provider>
-  );
+  return <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, getProductQuantity, cartTotal, cartItemCount }}>{children}</CartContext.Provider>;
 }
 
 export function useCart() {
   const context = useContext(CartContext);
-  if (context === undefined) {
-    throw new Error('useCart must be used within a CartProvider');
-  }
+  if (!context) throw new Error("useCart must be used within a CartProvider");
   return context;
 }
