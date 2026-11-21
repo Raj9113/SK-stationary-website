@@ -5,7 +5,7 @@ import { getAdminAccess } from "@/lib/admin-auth";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"]);
 
 export async function POST(request: Request) {
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     const file = form.get("file");
     if (!(file instanceof File)) return NextResponse.json({ ok: false, message: "Choose an image to upload." }, { status: 400 });
     if (!ALLOWED_TYPES.has(file.type)) return NextResponse.json({ ok: false, message: "Use a JPG, PNG, WebP or AVIF image." }, { status: 415 });
-    if (file.size <= 0 || file.size > MAX_IMAGE_BYTES) return NextResponse.json({ ok: false, message: "Image must be smaller than 5 MB." }, { status: 413 });
+    if (file.size <= 0 || file.size > MAX_IMAGE_BYTES) return NextResponse.json({ ok: false, message: "Image must be smaller than 4 MB." }, { status: 413 });
 
     const timestamp = Math.floor(Date.now() / 1000).toString();
     const folder = "sk-stationary/products";
