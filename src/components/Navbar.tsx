@@ -1,234 +1,55 @@
 'use client';
 
 import { useState } from 'react';
-import { usePathname } from 'next/navigation';
-import { useTheme } from '@/context/ThemeContext';
-import { ChevronRight, Sun, Moon, ShoppingCart, X, Minus, Plus } from 'lucide-react';
 import Link from 'next/link';
+import { ChevronRight, ShoppingCart, X, Minus, Plus } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 
 export default function Navbar() {
-  const { isDark, toggleTheme } = useTheme();
-  const pathname = usePathname();
-  const showThemeToggle = pathname === '/stationery';
-  const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const { cart, removeFromCart, updateQuantity, cartTotal, cartItemCount } = useCart();
 
   return (
     <>
-      {/* Navigation */}
-      <nav
-        className={`sticky top-0 z-50 backdrop-blur-md transition-all duration-300 ${
-          isDark ? 'bg-black/80 border-gray-800' : 'bg-white/80 border-gray-200'
-        } border-b`}
-      >
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/stationery" className={`text-2xl font-semibold ${isDark ? 'text-white' : 'text-black'} tracking-tight hover:opacity-80 transition-opacity`}>
-              Stationery Store
+      <nav className="sticky top-0 z-50 border-b border-[#e9e0d5] bg-[#fffdfa]/95 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
+          <div className="flex items-center justify-between gap-3">
+            <Link href="/" className="min-w-0">
+              <span className="block text-lg sm:text-2xl font-bold tracking-tight text-[#760314]">S K Stationary</span>
+              <span className="block text-xs sm:text-sm font-semibold text-[#5f020f]">&amp; Janseva Kendr</span>
             </Link>
-            <div className="flex items-center gap-6">
-              <Link
-                href="/stationery"
-                className={`px-4 py-2 text-sm transition-colors ${
-                  isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-black'
-                }`}
-              >
-                Shop
-              </Link>
-
-              {/* Cart Button */}
-              <button
-                onClick={() => setIsCartOpen(!isCartOpen)}
-                className={`relative p-2.5 rounded-full transition-all duration-300 ${
-                  isDark
-                    ? 'bg-gray-900 text-white hover:bg-gray-800'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-                aria-label="Shopping cart"
-              >
-                <ShoppingCart size={20} />
-                {cartItemCount > 0 && (
-                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-600 text-black text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
-                    {cartItemCount}
-                  </div>
-                )}
+            <div className="flex items-center gap-2 sm:gap-5">
+              <Link href="/stationery" className="hidden sm:inline-flex px-3 py-2 text-sm font-semibold text-[#5f020f] hover:text-[#760314]">Shop</Link>
+              <button onClick={() => setIsCartOpen(!isCartOpen)} className="relative rounded-full bg-[#760314] p-3 text-white shadow-sm transition hover:bg-[#5f020f]" aria-label="Shopping cart">
+                <ShoppingCart size={20}/>
+                {cartItemCount > 0 && <span className="absolute -right-1.5 -top-1.5 grid h-5 min-w-5 place-items-center rounded-full bg-[#e2ba5d] px-1 text-xs font-bold text-[#20191a]">{cartItemCount}</span>}
               </button>
-
-              {/* Theme Toggle Button */}
-              {showThemeToggle && (
-                <button
-                  onClick={toggleTheme}
-                  className={`p-2.5 rounded-full transition-all duration-300 ${
-                    isDark
-                      ? 'bg-gray-900 text-yellow-400 hover:bg-gray-800'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                  aria-label="Toggle theme"
-                  title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-                >
-                  {isDark ? <Sun size={20} /> : <Moon size={20} />}
-                </button>
-              )}
             </div>
           </div>
         </div>
       </nav>
 
-      {/* Cart Sidebar */}
       {isCartOpen && (
-        <div
-          className={`fixed right-0 top-16 bottom-0 w-96 max-w-full ${
-            isDark ? 'bg-gray-900 border-l border-gray-800' : 'bg-white border-l border-gray-200'
-          } shadow-2xl z-40 flex flex-col`}
-        >
-          {/* Header */}
-          <div
-            className={`px-6 py-4 border-b ${isDark ? 'border-gray-800' : 'border-gray-200'} shrink-0`}
-          >
-            <div className="flex items-center justify-between">
-              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-black'}`}>
-                Shopping Cart
-              </h2>
-              <button
-                onClick={() => setIsCartOpen(false)}
-                className={`p-2 rounded-full transition-colors ${
-                  isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
-                }`}
-              >
-                <X size={20} className={isDark ? 'text-white' : 'text-black'} />
-              </button>
+        <>
+          <button aria-label="Close cart" className="fixed inset-0 z-40 bg-black/40" onClick={() => setIsCartOpen(false)}/>
+          <aside className="fixed right-0 top-0 z-50 flex h-dvh w-full max-w-md flex-col border-l border-[#e9e0d5] bg-[#fffdfa] text-[#20191a] shadow-2xl">
+            <header className="flex items-center justify-between border-b border-[#e9e0d5] px-5 py-4">
+              <div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#760314]">Your selection</p><h2 className="text-xl font-bold">Shopping Cart</h2></div>
+              <button onClick={() => setIsCartOpen(false)} className="rounded-full p-2 text-[#71686a] hover:bg-[#f7f3ea]" aria-label="Close cart"><X size={20}/></button>
+            </header>
+            <div className="flex-1 overflow-y-auto p-4">
+              {cart.length === 0 ? (
+                <div className="flex h-full flex-col items-center justify-center text-center text-[#71686a]"><ShoppingCart size={42} className="mb-3 text-[#b8a9a0]"/><p className="font-semibold">Your cart is empty</p><Link href="/stationery" onClick={() => setIsCartOpen(false)} className="mt-4 rounded-lg bg-[#760314] px-5 py-2.5 font-semibold text-white">Continue shopping</Link></div>
+              ) : <div className="space-y-3">{cart.map(item => (
+                <article key={item.id} className="rounded-xl border border-[#e9e0d5] bg-white p-4">
+                  <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h3 className="font-bold text-[#20191a]">{item.name}</h3><p className="mt-1 text-sm font-semibold text-[#760314]">{item.price}</p></div><button onClick={() => removeFromCart(item.id)} className="rounded-md p-1 text-[#71686a] hover:bg-[#f7f3ea]" aria-label="Remove item"><X size={16}/></button></div>
+                  <div className="mt-3 flex items-center gap-3"><button onClick={() => updateQuantity(item.id,item.quantity-1)} className="rounded-md border border-[#e9e0d5] bg-[#f7f3ea] p-2" aria-label="Decrease quantity"><Minus size={14}/></button><span className="min-w-6 text-center font-bold">{item.quantity}</span><button onClick={() => updateQuantity(item.id,item.quantity+1)} className="rounded-md border border-[#e9e0d5] bg-[#f7f3ea] p-2" aria-label="Increase quantity"><Plus size={14}/></button></div>
+                </article>
+              ))}</div>}
             </div>
-          </div>
-
-          {/* Scrollable Items */}
-          <div className="flex-1 overflow-y-auto">
-            {cart.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full p-6">
-                <ShoppingCart
-                  size={48}
-                  className={`mb-4 ${isDark ? 'text-gray-600' : 'text-gray-400'}`}
-                />
-                <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Your cart is empty
-                </p>
-              </div>
-            ) : (
-              <div className="p-6 space-y-4">
-                {cart.map((item) => (
-                  <div
-                    key={item.id}
-                    className={`p-4 rounded-lg ${
-                      isDark
-                        ? 'bg-gray-800 border border-gray-700'
-                        : 'bg-gray-50 border border-gray-200'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-black'}`}>
-                          {item.name}
-                        </h3>
-                        <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                          {item.price}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => removeFromCart(item.id)}
-                        className={`p-1 rounded transition-colors ${
-                          isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
-                        }`}
-                      >
-                        <X
-                          size={16}
-                          className={isDark ? 'text-gray-400' : 'text-gray-600'}
-                        />
-                      </button>
-                    </div>
-
-                    {/* Quantity Controls */}
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() =>
-                          updateQuantity(item.id, item.quantity - 1)
-                        }
-                        className={`p-1 rounded transition-colors ${
-                          isDark
-                            ? 'bg-gray-700 hover:bg-gray-600'
-                            : 'bg-gray-200 hover:bg-gray-300'
-                        }`}
-                      >
-                        <Minus
-                          size={14}
-                          className={isDark ? 'text-white' : 'text-black'}
-                        />
-                      </button>
-                      <span
-                        className={`flex-1 text-center font-semibold ${
-                          isDark ? 'text-white' : 'text-black'
-                        }`}
-                      >
-                        {item.quantity}
-                      </span>
-                      <button
-                        onClick={() =>
-                          updateQuantity(item.id, item.quantity + 1)
-                        }
-                        className={`p-1 rounded transition-colors ${
-                          isDark
-                            ? 'bg-gray-700 hover:bg-gray-600'
-                            : 'bg-gray-200 hover:bg-gray-300'
-                        }`}
-                      >
-                        <Plus
-                          size={14}
-                          className={isDark ? 'text-white' : 'text-black'}
-                        />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Footer - Checkout */}
-          {cart.length > 0 && (
-            <div
-              className={`px-6 py-4 border-t ${
-                isDark ? 'border-gray-800' : 'border-gray-200'
-              } shrink-0`}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <span
-                  className={`font-semibold ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}
-                >
-                  Subtotal:
-                </span>
-                <span
-                  className={`font-bold text-lg ${
-                    isDark ? 'text-white' : 'text-black'
-                  }`}
-                >
-                  ${cartTotal.toFixed(2)}
-                </span>
-              </div>
-              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors">
-                Checkout
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Overlay when cart is open */}
-      {isCartOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-30 top-16"
-          onClick={() => setIsCartOpen(false)}
-        />
+            {cart.length > 0 && <footer className="border-t border-[#e9e0d5] bg-[#f7f3ea] p-5"><div className="mb-4 flex items-center justify-between"><span className="font-semibold text-[#71686a]">Subtotal</span><strong className="text-xl text-[#760314]">₹{cartTotal.toFixed(2)}</strong></div><button disabled className="w-full cursor-not-allowed rounded-xl bg-[#760314] py-3 font-bold text-white opacity-80">Checkout coming soon</button><p className="mt-2 text-center text-xs text-[#71686a]">Checkout will be available in the next phase.</p></footer>}
+          </aside>
+        </>
       )}
     </>
   );
