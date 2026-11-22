@@ -3,16 +3,27 @@ import { randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 
 export const runtime = "nodejs";
-export async function GET(request: Request) {
+
+const APP_BASE_URL = "https://www.skstationaryjansevakendr.com";
+const GOOGLE_CALLBACK_URL = "https://auth.skstationaryjansevakendr.com/api/auth/google/callback";
+const COOKIE_DOMAIN = ".skstationaryjansevakendr.com";
+
+export async function GET() {
   const clientId = process.env.GOOGLE_CLIENT_ID;
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
-  if (!clientId) return NextResponse.redirect(new URL("/account/login?google=not-configured", baseUrl));
+  if (!clientId) return NextResponse.redirect(new URL("/account/login?google=not-configured", APP_BASE_URL));
   const state = randomBytes(24).toString("hex");
   const store = await cookies();
-  store.set("google_oauth_state", state, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 600 });
+  store.set("google_oauth_state", state, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+    domain: COOKIE_DOMAIN,
+    maxAge: 600,
+  });
   const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
   url.searchParams.set("client_id", clientId);
-  url.searchParams.set("redirect_uri", baseUrl + "/api/auth/google/callback");
+  url.searchParams.set("redirect_uri", GOOGLE_CALLBACK_URL);
   url.searchParams.set("response_type", "code");
   url.searchParams.set("scope", "openid email profile");
   url.searchParams.set("state", state);
