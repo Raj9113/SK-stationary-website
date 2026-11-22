@@ -7,6 +7,7 @@ import { ShoppingCart, X, Minus, Plus, Trash2, CheckCircle2, Home, BookOpen, Fil
 import { useCart } from '@/context/CartContext';
 
 export default function Navbar() {
+  const pathname = usePathname();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [notice, setNotice] = useState('');
