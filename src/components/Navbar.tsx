@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+import logo from '@/app/icon.png';
 import { usePathname } from 'next/navigation';
 import { ShoppingCart, X, Minus, Plus, Trash2, CheckCircle2, Home, BookOpen, FileText, UserRound, Menu } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
@@ -31,7 +33,7 @@ export default function Navbar() {
       <header className="sticky top-0 z-50 border-b border-[#e9e0d5] bg-[#fffdfa]/95 shadow-sm backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <Link href="/" className="flex min-w-0 items-center gap-2.5">
-            <img src="/sk-seal.svg" alt="" className="h-11 w-11 shrink-0 object-contain sm:h-14 sm:w-14"/>
+            <Image src={logo} alt="S K Stationary logo" priority className="h-11 w-11 shrink-0 object-contain sm:h-14 sm:w-14" />
             <span className="min-w-0"><strong className="block truncate text-base font-extrabold tracking-tight text-[#760314] sm:text-xl">S K Stationary</strong><span className="block text-xs font-semibold text-[#5f020f] sm:text-sm">&amp; Janseva Kendr</span></span>
           </Link>
           <div className="flex items-center gap-2 sm:gap-4">
