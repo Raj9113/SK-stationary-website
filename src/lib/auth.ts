@@ -50,6 +50,7 @@ export async function createUserSession(userId: string) {
     sameSite: "lax",
     path: "/",
     expires: expiresAt,
+    ...sharedCookieOptions,
   });
 }
 
@@ -79,5 +80,6 @@ export async function destroyUserSession() {
     sameSite: "lax",
     path: "/",
     maxAge: 0,
+    ...sharedCookieOptions,
   });
 }
