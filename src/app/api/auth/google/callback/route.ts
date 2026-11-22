@@ -19,14 +19,21 @@ export async function GET(request: Request) {
     const state = url.searchParams.get("state");
     const store = await cookies();
     const expected = store.get("google_oauth_state")?.value;
-    store.delete("google_oauth_state");
+    store.set("google_oauth_state", "", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      path: "/",
+      domain: COOKIE_DOMAIN,
+      maxAge: 0,
+    });
     if (!code || !state || !expected || state !== expected) return fail("invalid-state");
     const clientId = process.env.GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
     if (!clientId || !clientSecret) return fail("not-configured");
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ code, client_id: clientId, client_secret: clientSecret, redirect_uri: baseUrl + "/api/auth/google/callback", grant_type: "authorization_code" }),
+      body: new URLSearchParams({ code, client_id: clientId, client_secret: clientSecret, redirect_uri: GOOGLE_CALLBACK_URL, grant_type: "authorization_code" }),
       cache: "no-store",
     });
     const tokenPayload = await tokenResponse.json().catch(() => null) as
@@ -65,7 +72,7 @@ export async function GET(request: Request) {
     if (!user.name && info.name) user.name = info.name.slice(0, 100);
     await user.save();
     await createUserSession(String(user._id));
-    return NextResponse.redirect(new URL("/account/profile", baseUrl));
+    return NextResponse.redirect(new URL("/account/profile", APP_BASE_URL));
   } catch (error) {
     console.error("Google sign-in failed:", error);
     return fail("failed");
