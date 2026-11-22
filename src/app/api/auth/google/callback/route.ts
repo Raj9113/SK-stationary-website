@@ -7,9 +7,12 @@ import User from "@/models/User";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const APP_BASE_URL = "https://www.skstationaryjansevakendr.com";
+const GOOGLE_CALLBACK_URL = "https://auth.skstationaryjansevakendr.com/api/auth/google/callback";
+const COOKIE_DOMAIN = ".skstationaryjansevakendr.com";
+
 export async function GET(request: Request) {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
-  const fail = (reason: string) => NextResponse.redirect(new URL("/account/login?google=" + reason, baseUrl));
+  const fail = (reason: string) => NextResponse.redirect(new URL("/account/login?google=" + reason, APP_BASE_URL));
   try {
     const url = new URL(request.url);
     const code = url.searchParams.get("code");
