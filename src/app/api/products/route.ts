@@ -25,7 +25,9 @@ export async function GET() {
     const filter = access.authorized ? {} : { status: "Active" as const };
     const products = await Product.find(filter)
       .sort({ featured: -1, createdAt: -1 })
-      .select("name sku category price compareAt stock description image imagePublicId status featured createdAt updatedAt")
+      .select(access.authorized
+        ? "name sku category price compareAt stock description image imagePublicId status featured createdAt updatedAt"
+        : "name category price compareAt stock description image featured createdAt updatedAt")
       .lean();
     return NextResponse.json({ ok: true, products });
   } catch (error) {
