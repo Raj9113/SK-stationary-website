@@ -6,6 +6,11 @@ import Navbar from "@/components/Navbar";
 export const metadata: Metadata = {
   title: "S K Stationary & Janseva Kendr",
   description: "Shop stationery and access trusted online services at S K Stationary & Janseva Kendr.",
+  icons: {
+    icon: [{ url: "/icon.png", type: "image/png" }],
+    shortcut: ["/icon.png"],
+    apple: [{ url: "/icon.png", type: "image/png" }],
+  },
 };
 
 export const viewport: Viewport = { width: "device-width", initialScale: 1, maximumScale: 5 };
