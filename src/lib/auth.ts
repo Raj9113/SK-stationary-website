@@ -44,6 +44,15 @@ export async function createUserSession(userId: string) {
   const expiresAt = new Date(Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000);
   await Session.create({ userId, tokenHash: hashToken(token), expiresAt });
   const cookieStore = await cookies();
+  // Remove any legacy host-only cookie so the browser never sends two
+  // same-name session cookies after switching to the shared parent domain.
+  cookieStore.set(SESSION_COOKIE, "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
   cookieStore.set(SESSION_COOKIE, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -74,6 +83,14 @@ export async function destroyUserSession() {
     await connectToDatabase();
     await Session.deleteOne({ tokenHash: hashToken(token) });
   }
+  // Clear both the legacy host-only cookie and the shared parent-domain cookie.
+  cookieStore.set(SESSION_COOKIE, "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
   cookieStore.set(SESSION_COOKIE, "", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
