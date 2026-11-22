@@ -2,11 +2,12 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ShoppingCart, X, Minus, Plus, Trash2, CheckCircle2, Home, BookOpen, FileText, UserRound } from 'lucide-react';
+import { ShoppingCart, X, Minus, Plus, Trash2, CheckCircle2, Home, BookOpen, FileText, UserRound, Menu } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 
 export default function Navbar() {
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [notice, setNotice] = useState('');
   const { cart, removeFromCart, clearCart, updateQuantity, cartTotal, cartItemCount } = useCart();
 
@@ -30,6 +31,7 @@ export default function Navbar() {
             <span className="min-w-0"><strong className="block truncate text-base font-extrabold tracking-tight text-[#760314] sm:text-xl">S K Stationary</strong><span className="block text-xs font-semibold text-[#5f020f] sm:text-sm">&amp; Janseva Kendr</span></span>
           </Link>
           <div className="flex items-center gap-2 sm:gap-4">
+            <button type="button" onClick={() => setIsMobileMenuOpen(true)} aria-label="Open navigation menu" aria-expanded={isMobileMenuOpen} className="rounded-full border border-[#e9e0d5] p-2.5 text-[#760314] sm:hidden"><Menu size={20}/></button>
             <Link href="/account/profile" aria-label="Account" className="rounded-full border border-[#e9e0d5] p-2.5 text-[#760314] hover:bg-[#f7f3ea]"><UserRound size={19}/></Link>
             <button onClick={() => setIsCartOpen(!isCartOpen)} className="relative rounded-full bg-[#760314] p-3 text-white shadow-sm transition hover:bg-[#5f020f]" aria-label="Shopping cart">
               <ShoppingCart size={20}/>
@@ -37,8 +39,8 @@ export default function Navbar() {
             </button>
           </div>
         </div>
-        <nav aria-label="Main navigation" className="border-t border-[#f0e8df]">
-          <div className="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-3 py-1.5 sm:gap-3 sm:px-6">
+        <nav aria-label="Main navigation" className="hidden border-t border-[#f0e8df] sm:block">
+          <div className="mx-auto flex max-w-7xl items-center gap-1 px-3 py-1.5 sm:gap-3 sm:px-6">
             <Link href="/" className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-xs font-bold text-[#5f020f] hover:bg-[#f7f3ea] sm:text-sm"><Home size={15}/> Home</Link>
             <Link href="/stationery" className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-xs font-bold text-[#5f020f] hover:bg-[#f7f3ea] sm:text-sm"><ShoppingCart size={15}/> Stationery Store</Link>
             <Link href="/janseva-kendr" className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-xs font-bold text-[#5f020f] hover:bg-[#f7f3ea] sm:text-sm"><FileText size={15}/> Online Services</Link>
@@ -48,6 +50,22 @@ export default function Navbar() {
         </nav>
       </header>
 
+      <div className={isMobileMenuOpen ? "fixed inset-0 z-[70] sm:hidden" : "pointer-events-none fixed inset-0 z-[70] sm:hidden"} aria-hidden={!isMobileMenuOpen}>
+        <button type="button" aria-label="Close navigation menu" onClick={() => setIsMobileMenuOpen(false)} className={isMobileMenuOpen ? "absolute inset-0 h-full w-full bg-black/45 opacity-100 transition-opacity duration-300" : "absolute inset-0 h-full w-full bg-black/45 opacity-0 transition-opacity duration-300"}/>
+        <section role="dialog" aria-modal="true" aria-label="Website navigation" className={isMobileMenuOpen ? "absolute left-3 right-3 top-3 rounded-2xl border border-[#e9e0d5] bg-[#fffdfa] p-4 shadow-2xl opacity-100 translate-y-0 transition-all duration-300" : "absolute left-3 right-3 top-3 rounded-2xl border border-[#e9e0d5] bg-[#fffdfa] p-4 shadow-2xl opacity-0 -translate-y-5 transition-all duration-300"}>
+          <div className="mb-4 flex items-center justify-between border-b border-[#f0e8df] pb-3">
+            <div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#760314]">Explore</p><h2 className="text-lg font-extrabold text-[#5f020f]">Menu</h2></div>
+            <button type="button" onClick={() => setIsMobileMenuOpen(false)} aria-label="Close menu" className="rounded-full border border-[#e9e0d5] p-2 text-[#760314]"><X size={20}/></button>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Link onClick={() => setIsMobileMenuOpen(false)} href="/" className="flex min-h-14 items-center gap-2 rounded-xl border border-[#e9e0d5] bg-[#f7f3ea] px-3 py-3 text-sm font-bold text-[#5f020f]"><Home size={18}/> Home</Link>
+            <Link onClick={() => setIsMobileMenuOpen(false)} href="/stationery" className="flex min-h-14 items-center gap-2 rounded-xl border border-[#e9e0d5] bg-[#f7f3ea] px-3 py-3 text-sm font-bold text-[#5f020f]"><ShoppingCart size={18}/> Stationery Store</Link>
+            <Link onClick={() => setIsMobileMenuOpen(false)} href="/janseva-kendr" className="flex min-h-14 items-center gap-2 rounded-xl border border-[#e9e0d5] bg-[#f7f3ea] px-3 py-3 text-sm font-bold text-[#5f020f]"><FileText size={18}/> Online Services</Link>
+            <Link onClick={() => setIsMobileMenuOpen(false)} href="/offers" className="flex min-h-14 items-center gap-2 rounded-xl border border-[#e9e0d5] bg-[#f7f3ea] px-3 py-3 text-sm font-bold text-[#5f020f]"><BookOpen size={18}/> Offers</Link>
+            <Link onClick={() => setIsMobileMenuOpen(false)} href="/stationery?sort=new" className="col-span-2 flex min-h-14 items-center gap-2 rounded-xl border border-[#e9e0d5] bg-[#f7f3ea] px-3 py-3 text-sm font-bold text-[#5f020f]"><BookOpen size={18}/> New Arrivals</Link>
+          </div>
+        </section>
+      </div>
       {isCartOpen && (
         <>
           <button aria-label="Close cart" className="fixed inset-0 z-40 bg-black/40" onClick={() => setIsCartOpen(false)}/>
