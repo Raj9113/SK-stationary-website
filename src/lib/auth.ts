@@ -8,6 +8,11 @@ import Session from "@/models/Session";
 
 const SESSION_COOKIE = "sk_session";
 const SESSION_DAYS = 7;
+// Share the authenticated session between www and the dedicated OAuth host.
+const COOKIE_DOMAIN = ".skstationaryjansevakendr.com";
+const sharedCookieOptions = process.env.NODE_ENV === "production"
+  ? { domain: COOKIE_DOMAIN }
+  : {};
 
 function authSecret() {
   const secret = process.env.AUTH_SECRET;
