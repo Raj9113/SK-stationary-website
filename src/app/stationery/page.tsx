@@ -54,16 +54,16 @@ export default function ProductPage() {
   return (
     <main className="min-h-screen bg-[#f7f3ea] text-[#20191a]">
       <section className="border-b border-[#e9e0d5] bg-gradient-to-br from-[#fffdfa] via-[#f8f0e5] to-[#f1e5d8]">
-        <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-7">
-          <div className="relative mx-auto max-w-xl">
+        <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 sm:py-4">
+          <div className="relative mx-auto max-w-3xl">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8c7b78]" size={19}/>
-            <input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search products..." className="w-full rounded-xl border border-[#d9cbbd] bg-white py-3 pl-12 pr-5 text-[#20191a] outline-none transition focus:border-[#760314] focus:ring-2 focus:ring-[#760314]/15"/>
+            <input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search products..." className="h-12 w-full rounded-xl border border-[#d9cbbd] bg-white pl-12 pr-5 text-base text-[#20191a] outline-none transition focus:border-[#760314] focus:ring-2 focus:ring-[#760314]/15"/>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
-        {categories.length > 1 && <div className="mb-8 flex gap-2 overflow-x-auto pb-2">{categories.map(category => <button key={category} onClick={() => setActiveCategory(category)} className={`shrink-0 rounded-full border px-5 py-2.5 text-sm font-semibold transition-colors ${activeCategory === category ? 'border-[#760314] bg-[#760314] text-white shadow-sm' : 'border-[#e1d5c9] bg-[#fffdfa] text-[#5f020f] hover:border-[#760314]'}`}>{category}</button>)}</div>}
+      <section className="mx-auto max-w-7xl px-4 pb-8 pt-4 sm:px-6 sm:pb-10 sm:pt-6">
+        {categories.length > 1 && <div className="category-scroller mb-5 flex min-w-0 items-center gap-2.5 overflow-x-auto overscroll-x-contain pb-2 sm:mb-7">{categories.map(category => <button key={category} onClick={() => setActiveCategory(category)} className={`shrink-0 rounded-full border px-5 py-2.5 text-sm font-semibold transition-colors ${activeCategory === category ? 'border-[#760314] bg-[#760314] text-white shadow-sm' : 'border-[#e1d5c9] bg-[#fffdfa] text-[#5f020f] hover:border-[#760314]'}`}>{category}</button>)}</div>}
         {loading ? <div className="py-24 text-center text-[#71686a]">Loading products…</div> : error ? <div className="py-24 text-center"><p className="font-semibold text-red-700">{error}</p><button onClick={() => window.location.reload()} className="mt-4 font-semibold text-[#760314] underline">Try again</button></div> : filtered.length === 0 ? <div className="rounded-2xl border border-[#e9e0d5] bg-[#fffdfa] py-20 text-center"><Package size={42} className="mx-auto mb-4 text-[#b8a9a0]"/><p className="text-xl font-bold text-[#5f020f]">No products available</p><p className="mt-2 text-[#71686a]">Please check back soon or try another search.</p></div> : (
           <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
             {filtered.map(product => {
