@@ -26,9 +26,30 @@ export async function GET(request: Request) {
       body: new URLSearchParams({ code, client_id: clientId, client_secret: clientSecret, redirect_uri: baseUrl + "/api/auth/google/callback", grant_type: "authorization_code" }),
       cache: "no-store",
     });
-    if (!tokenResponse.ok) return fail("token-failed");
-    const tokens = await tokenResponse.json() as { access_token?: string };
-    if (!tokens.access_token) return fail("token-failed");
+    const tokenPayload = await tokenResponse.json().catch(() => null) as
+      | { access_token?: string; error?: string; error_description?: string }
+      | null;
+    if (!tokenResponse.ok) {
+      // Log only Google's non-sensitive error metadata. Never log auth codes,
+      // client secrets, access tokens, or refresh tokens.
+      console.error("Google OAuth token exchange failed:", {
+        status: tokenResponse.status,
+        error: typeof tokenPayload?.error === "string" ? tokenPayload.error.slice(0, 100) : "unknown",
+        errorDescription: typeof tokenPayload?.error_description === "string"
+          ? tokenPayload.error_description.slice(0, 300)
+          : undefined,
+        callbackOrigin: url.origin,
+      });
+      return fail("token-failed");
+    }
+    const tokens = tokenPayload;
+    if (!tokens?.access_token) {
+      console.error("Google OAuth token exchange returned no access token:", {
+        status: tokenResponse.status,
+        callbackOrigin: url.origin,
+      });
+      return fail("token-failed");
+    }
     const infoResponse = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", { headers: { Authorization: "Bearer " + tokens.access_token }, cache: "no-store" });
     if (!infoResponse.ok) return fail("profile-failed");
     const info = await infoResponse.json() as { email?: string; verified_email?: boolean; name?: string; picture?: string };
