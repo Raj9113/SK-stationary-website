@@ -4,6 +4,7 @@ import { connectToDatabase } from "@/lib/mongodb";
 import { getAdminAccess } from "@/lib/admin-auth";
 import { normalizeProduct } from "@/lib/product-validation";
 import Product from "@/models/Product";
+import { deleteProductImage } from "@/lib/cloudinary";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,8 +51,22 @@ export async function PATCH(request: Request, context: Context) {
     const normalized = normalizeProduct(merged);
     if ("error" in normalized) return NextResponse.json({ ok: false, message: normalized.error }, { status: 400 });
 
+    const previousImagePublicId = existing.imagePublicId;
     Object.assign(existing, normalized.value);
     await existing.save();
+
+    if (previousImagePublicId && previousImagePublicId !== existing.imagePublicId) {
+      const stillReferenced = await Product.exists({ imagePublicId: previousImagePublicId });
+      if (!stillReferenced) {
+        try {
+          const deleted = await deleteProductImage(previousImagePublicId);
+          if (!deleted) console.warn("Old product image cleanup was not confirmed.");
+        } catch (cleanupError) {
+          console.warn("Old product image cleanup failed:", cleanupError);
+        }
+      }
+    }
+
     return NextResponse.json({ ok: true, product: existing });
   } catch (error) {
     if (typeof error === "object" && error !== null && "code" in error && error.code === 11000) {
@@ -71,8 +86,23 @@ export async function DELETE(_request: Request, context: Context) {
     if (!mongoose.isValidObjectId(id)) return NextResponse.json({ ok: false, message: "Invalid product ID." }, { status: 400 });
 
     await connectToDatabase();
-    const product = await Product.findByIdAndDelete(id);
+    const product = await Product.findById(id);
     if (!product) return NextResponse.json({ ok: false, message: "Product not found." }, { status: 404 });
+
+    await Product.deleteOne({ _id: product._id });
+
+    if (product.imagePublicId) {
+      const stillReferenced = await Product.exists({ imagePublicId: product.imagePublicId });
+      if (!stillReferenced) {
+        try {
+          const deleted = await deleteProductImage(product.imagePublicId);
+          if (!deleted) console.warn("Deleted product image cleanup was not confirmed.");
+        } catch (cleanupError) {
+          console.warn("Deleted product image cleanup failed:", cleanupError);
+        }
+      }
+    }
+
     return NextResponse.json({ ok: true, message: "Product deleted." });
   } catch (error) {
     console.error("Product deletion failed:", error);
