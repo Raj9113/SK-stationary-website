@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { ShoppingCart, X, Minus, Plus, Trash2, CheckCircle2, Home, BookOpen, FileText, UserRound, Menu } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 
@@ -21,6 +22,8 @@ export default function Navbar() {
     if (quantity <= 0) { removeItem(id, name); return; }
     updateQuantity(id, quantity);
   };
+
+  if (pathname.startsWith('/admin')) return null;
 
   return (
     <>
