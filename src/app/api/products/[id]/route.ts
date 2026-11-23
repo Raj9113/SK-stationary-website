@@ -56,15 +56,29 @@ export async function PATCH(request: Request, context: Context) {
     await existing.save();
 
     if (previousImagePublicId && previousImagePublicId !== existing.imagePublicId) {
+      console.info("[product-image-cleanup] replacement detected", {
+        productId: id,
+        previousPublicId: previousImagePublicId,
+        replacementPublicId: existing.imagePublicId ?? null,
+      });
       const stillReferenced = await Product.exists({ imagePublicId: previousImagePublicId });
-      if (!stillReferenced) {
-        try {
-          const deleted = await deleteProductImage(previousImagePublicId);
-          if (!deleted) console.warn("Old product image cleanup was not confirmed.");
-        } catch (cleanupError) {
-          console.warn("Old product image cleanup failed:", cleanupError);
-        }
+      if (stillReferenced) {
+        console.info("[product-image-cleanup] retained old image because another product references it", {
+          previousPublicId: previousImagePublicId,
+        });
+      } else {
+        const deleted = await deleteProductImage(previousImagePublicId);
+        console.info("[product-image-cleanup] replacement cleanup finished", {
+          previousPublicId: previousImagePublicId,
+          confirmed: deleted,
+        });
       }
+    } else {
+      console.info("[product-image-cleanup] no replacement cleanup needed", {
+        productId: id,
+        previousPublicId: previousImagePublicId ?? null,
+        currentPublicId: existing.imagePublicId ?? null,
+      });
     }
 
     return NextResponse.json({ ok: true, product: existing });
@@ -93,14 +107,21 @@ export async function DELETE(_request: Request, context: Context) {
 
     if (product.imagePublicId) {
       const stillReferenced = await Product.exists({ imagePublicId: product.imagePublicId });
-      if (!stillReferenced) {
-        try {
-          const deleted = await deleteProductImage(product.imagePublicId);
-          if (!deleted) console.warn("Deleted product image cleanup was not confirmed.");
-        } catch (cleanupError) {
-          console.warn("Deleted product image cleanup failed:", cleanupError);
-        }
+      if (stillReferenced) {
+        console.info("[product-image-cleanup] retained deleted product image because another product references it", {
+          publicId: product.imagePublicId,
+        });
+      } else {
+        const deleted = await deleteProductImage(product.imagePublicId);
+        console.info("[product-image-cleanup] product deletion cleanup finished", {
+          publicId: product.imagePublicId,
+          confirmed: deleted,
+        });
       }
+    } else {
+      console.info("[product-image-cleanup] product deleted without an image public ID", {
+        productId: id,
+      });
     }
 
     return NextResponse.json({ ok: true, message: "Product deleted." });
