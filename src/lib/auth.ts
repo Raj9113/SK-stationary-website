@@ -8,9 +8,10 @@ import Session from "@/models/Session";
 
 const SESSION_COOKIE = "sk_session";
 const SESSION_DAYS = 7;
-// Share the authenticated session between www and the dedicated OAuth host.
+// Share sessions across the custom production domain and its OAuth callback host.
+// Vercel preview deployments use vercel.app hostnames and must keep host-only cookies.
 const COOKIE_DOMAIN = ".skstationaryjansevakendr.com";
-const sharedCookieOptions = process.env.NODE_ENV === "production"
+const sharedCookieOptions = process.env.VERCEL_ENV === "production"
   ? { domain: COOKIE_DOMAIN }
   : {};
 

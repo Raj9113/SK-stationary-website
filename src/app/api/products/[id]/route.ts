@@ -4,6 +4,7 @@ import { connectToDatabase } from "@/lib/mongodb";
 import { getAdminAccess } from "@/lib/admin-auth";
 import { normalizeProduct } from "@/lib/product-validation";
 import Product from "@/models/Product";
+import { deleteProductImage } from "@/lib/cloudinary";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,8 +51,36 @@ export async function PATCH(request: Request, context: Context) {
     const normalized = normalizeProduct(merged);
     if ("error" in normalized) return NextResponse.json({ ok: false, message: normalized.error }, { status: 400 });
 
+    const previousImagePublicId = existing.imagePublicId;
     Object.assign(existing, normalized.value);
     await existing.save();
+
+    if (previousImagePublicId && previousImagePublicId !== existing.imagePublicId) {
+      console.info("[product-image-cleanup] replacement detected", {
+        productId: id,
+        previousPublicId: previousImagePublicId,
+        replacementPublicId: existing.imagePublicId ?? null,
+      });
+      const stillReferenced = await Product.exists({ imagePublicId: previousImagePublicId });
+      if (stillReferenced) {
+        console.info("[product-image-cleanup] retained old image because another product references it", {
+          previousPublicId: previousImagePublicId,
+        });
+      } else {
+        const deleted = await deleteProductImage(previousImagePublicId);
+        console.info("[product-image-cleanup] replacement cleanup finished", {
+          previousPublicId: previousImagePublicId,
+          confirmed: deleted,
+        });
+      }
+    } else {
+      console.info("[product-image-cleanup] no replacement cleanup needed", {
+        productId: id,
+        previousPublicId: previousImagePublicId ?? null,
+        currentPublicId: existing.imagePublicId ?? null,
+      });
+    }
+
     return NextResponse.json({ ok: true, product: existing });
   } catch (error) {
     if (typeof error === "object" && error !== null && "code" in error && error.code === 11000) {
@@ -71,8 +100,30 @@ export async function DELETE(_request: Request, context: Context) {
     if (!mongoose.isValidObjectId(id)) return NextResponse.json({ ok: false, message: "Invalid product ID." }, { status: 400 });
 
     await connectToDatabase();
-    const product = await Product.findByIdAndDelete(id);
+    const product = await Product.findById(id);
     if (!product) return NextResponse.json({ ok: false, message: "Product not found." }, { status: 404 });
+
+    await Product.deleteOne({ _id: product._id });
+
+    if (product.imagePublicId) {
+      const stillReferenced = await Product.exists({ imagePublicId: product.imagePublicId });
+      if (stillReferenced) {
+        console.info("[product-image-cleanup] retained deleted product image because another product references it", {
+          publicId: product.imagePublicId,
+        });
+      } else {
+        const deleted = await deleteProductImage(product.imagePublicId);
+        console.info("[product-image-cleanup] product deletion cleanup finished", {
+          publicId: product.imagePublicId,
+          confirmed: deleted,
+        });
+      }
+    } else {
+      console.info("[product-image-cleanup] product deleted without an image public ID", {
+        productId: id,
+      });
+    }
+
     return NextResponse.json({ ok: true, message: "Product deleted." });
   } catch (error) {
     console.error("Product deletion failed:", error);

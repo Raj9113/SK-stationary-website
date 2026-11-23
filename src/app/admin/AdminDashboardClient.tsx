@@ -112,10 +112,16 @@ export default function AdminDashboard() {
       const data = await response.json();
       if (!response.ok || !data.ok) throw new Error(data.message || "Image upload failed.");
       setForm(current => ({ ...current, image: data.image, imagePublicId: data.imagePublicId }));
-      setNotice("Image uploaded successfully.");
+      setNotice("Image uploaded successfully. Save the product to apply the change.");
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Image upload failed.");
     } finally { setUploading(false); }
+  };
+
+  const removeImage = () => {
+    if (!form.image && !form.imagePublicId) return;
+    setForm(current => ({ ...current, image: "", imagePublicId: "" }));
+    setNotice("Image marked for removal. Save the product to remove it from the listing and Cloudinary.");
   };
 
   const low = products.filter(p => p.stock > 0 && p.stock <= 10).length;
@@ -187,7 +193,21 @@ export default function AdminDashboard() {
               <label>MRP / Compare price (₹)<input type="number" min="0" value={form.compareAt} onChange={e => setForm({ ...form, compareAt: Number(e.target.value) })} /></label>
               <label>Stock quantity<input type="number" min="0" step="1" value={form.stock} onChange={e => setForm({ ...form, stock: Number(e.target.value) })} /></label>
               <label>Publication status<select value={form.status} onChange={e => setForm({ ...form, status: e.target.value as Product["status"] })}><option>Draft</option><option>Active</option></select></label>
-              <label className="wide">Product image<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" disabled={uploading} onChange={e => { void uploadImage(e.target.files?.[0]); e.currentTarget.value = ""; }} />{uploading && <small>Uploading image…</small>}{form.image && <div className="admin-product-cell"><img src={form.image} alt="Product preview" style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 10 }} /><small>Image uploaded</small></div>}</label>
+              <label className="wide">Product image
+                <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" disabled={uploading} onChange={e => { void uploadImage(e.target.files?.[0]); e.currentTarget.value = ""; }} />
+                {uploading && <small>Uploading image…</small>}
+                {form.image ? (
+                  <div className="admin-image-editor">
+                    <div className="admin-product-cell"><img src={form.image} alt="Product preview" style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 10 }} /><small>Current image</small></div>
+                    <button type="button" className="admin-secondary admin-remove-image" onClick={removeImage} disabled={uploading || saving}>
+                      <Trash2 size={15} /> Remove image
+                    </button>
+                  </div>
+                ) : (
+                  <div className="admin-image-empty"><ImageIcon size={18} /><small>No product image selected</small></div>
+                )}
+                {!form.image && form.imagePublicId && <small>Image reference is pending removal.</small>}
+              </label>
               <label className="wide">Description<textarea rows={3} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Product details, size, pages, colour, pack quantity..." /></label>
               <label className="admin-check"><input type="checkbox" checked={form.featured} onChange={e => setForm({ ...form, featured: e.target.checked })} /><Star size={16} /> Feature this product</label>
             </div>
