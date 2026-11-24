@@ -10,7 +10,7 @@ type StoreProduct = CartProduct & { stock: number; compareAt: number; imageUrl: 
 const money = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(value);
 const mapProduct = (item: Record<string, unknown>): StoreProduct => ({
   id: String(item._id), name: String(item.name || ''), category: String(item.category || 'Other'),
-  price: money(Number(item.price) || 0), image: typeof item.image === 'string' ? item.image : '',
+  price: money(Number(item.price) || 0), unitPrice: Number(item.price) || 0, image: typeof item.image === 'string' ? item.image : '',
   imageUrl: typeof item.image === 'string' ? item.image : '', description: String(item.description || ''),
   stock: Number(item.stock) || 0, compareAt: Number(item.compareAt) || 0,
 });
@@ -44,8 +44,8 @@ export default function ProductDetail() {
 
   const handleAdd = () => {
     if (!product || product.stock < 1) return;
-    addToCart({ id: product.id, name: product.name, category: product.category, price: product.price, image: product.image, description: product.description });
-    setToast('Added to cart');
+    const added = addToCart({ id: product.id, name: product.name, category: product.category, price: product.price, unitPrice: product.unitPrice, stock: product.stock, image: product.image, description: product.description });
+    setToast(added ? 'Added to cart' : `Only ${product.stock} available; your cart has reached the stock limit.`);
     window.setTimeout(() => setToast(''), 2500);
   };
 
@@ -62,7 +62,7 @@ export default function ProductDetail() {
               <div className="rounded-2xl border border-[#e9e0d5] bg-[#fffdfa] p-6 sm:p-8">
                 <p className="text-sm font-bold uppercase tracking-widest text-[#760314]">{product.category}</p>
                 <h1 className="mt-3 text-3xl font-bold tracking-tight text-[#5f020f] sm:text-4xl">{product.name}</h1>
-                <div className="mt-5 flex items-baseline gap-3"><strong className="text-3xl text-[#760314]">{product.price}</strong>{product.compareAt > 0 && product.compareAt > Number(product.price.replace(/[^0-9.]/g, '')) && <span className="text-lg text-[#91898a] line-through">{money(product.compareAt)}</span>}</div>
+                <div className="mt-5 flex items-baseline gap-3"><strong className="text-3xl text-[#760314]">{product.price}</strong>{product.compareAt > 0 && product.compareAt > product.unitPrice && <span className="text-lg text-[#91898a] line-through">{money(product.compareAt)}</span>}</div>
                 <p className="mt-5 whitespace-pre-line text-base leading-relaxed text-[#71686a]">{product.description || 'Quality stationery for everyday use.'}</p>
                 <p className={`mt-5 font-semibold ${product.stock > 0 ? 'text-green-700' : 'text-red-700'}`}>{product.stock > 0 ? `In stock · ${product.stock} available` : 'Currently out of stock'}</p>
                 <button onClick={handleAdd} disabled={product.stock < 1} className="mt-6 flex w-full items-center justify-center gap-3 rounded-xl bg-[#760314] py-4 text-lg font-bold text-white transition hover:bg-[#5f020f] disabled:cursor-not-allowed disabled:bg-[#b8a9a0]"><ShoppingCart size={22}/>{quantity > 0 ? `Add another · ${quantity} in cart` : 'Add to cart'}</button>

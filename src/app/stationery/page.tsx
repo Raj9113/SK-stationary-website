@@ -9,7 +9,7 @@ type StoreProduct = CartProduct & { stock: number; compareAt: number; featured: 
 const money = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(value);
 const mapProduct = (item: Record<string, unknown>): StoreProduct => ({
   id: String(item._id), name: String(item.name || ''), category: String(item.category || 'Other'),
-  price: money(Number(item.price) || 0), image: typeof item.image === 'string' ? item.image : '',
+  price: money(Number(item.price) || 0), unitPrice: Number(item.price) || 0, image: typeof item.image === 'string' ? item.image : '',
   imageUrl: typeof item.image === 'string' ? item.image : '', description: String(item.description || ''),
   stock: Number(item.stock) || 0, compareAt: Number(item.compareAt) || 0, featured: item.featured === true,
 });
@@ -46,8 +46,8 @@ export default function ProductPage() {
 
   const add = (product: StoreProduct) => {
     if (product.stock < 1) return;
-    addToCart({ id: product.id, name: product.name, category: product.category, price: product.price, image: product.image, description: product.description });
-    setToast(product.name + ' added to cart');
+    const added = addToCart({ id: product.id, name: product.name, category: product.category, price: product.price, unitPrice: product.unitPrice, stock: product.stock, image: product.image, description: product.description });
+    setToast(added ? product.name + ' added to cart' : `Only ${product.stock} available; your cart has reached the stock limit.`);
     window.setTimeout(() => setToast(''), 2500);
   };
 
@@ -79,7 +79,7 @@ export default function ProductPage() {
                   <Link href={`/stationery/${product.id}`}><h2 className="mt-1.5 line-clamp-2 text-sm sm:text-lg font-bold leading-snug text-[#20191a]">{product.name}</h2></Link>
                   <p className="mt-1.5 line-clamp-2 min-h-9 text-xs sm:mt-2 sm:min-h-10 sm:text-sm text-[#71686a]">{product.description || 'Quality stationery for everyday use.'}</p>
                   <div className="mt-3 flex items-center justify-between gap-2 sm:mt-5">
-                    <div className="min-w-0"><strong className="text-base sm:text-xl text-[#5f020f]">{product.price}</strong>{product.compareAt > 0 && product.compareAt > Number(product.price.replace(/[^0-9.]/g, '')) && <p className="text-xs text-[#91898a] line-through">{money(product.compareAt)}</p>}</div>
+                    <div className="min-w-0"><strong className="text-base sm:text-xl text-[#5f020f]">{product.price}</strong>{product.compareAt > 0 && product.compareAt > product.unitPrice && <p className="text-xs text-[#91898a] line-through">{money(product.compareAt)}</p>}</div>
                     <div className="flex shrink-0 items-center gap-1.5 sm:gap-2"><button disabled={product.stock < 1} onClick={() => add(product)} className="rounded-full bg-[#760314] p-2 sm:p-3 text-white transition hover:bg-[#5f020f] disabled:cursor-not-allowed disabled:bg-[#b8a9a0]" aria-label="Add to cart"><ShoppingCart size={18}/></button>
                     <Link href={`/stationery/${product.id}`} className="rounded-full border border-[#e9e0d5] bg-[#f7f3ea] p-2 sm:p-3 text-[#760314] hover:bg-[#efe3d5]" aria-label={`View full details for ${product.name}`} title="View product details"><ChevronRight size={18}/></Link></div>
                   </div>
