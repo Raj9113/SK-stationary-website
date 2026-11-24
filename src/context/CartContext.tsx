@@ -62,7 +62,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
       }
     } catch {
-      window.localStorage.removeItem(CART_STORAGE_KEY);
+      try { window.localStorage.removeItem(CART_STORAGE_KEY); } catch { /* Storage may be disabled. */ }
     } finally {
       setHydrated(true);
     }
@@ -88,9 +88,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const response = await fetch('/api/products', { cache: 'no-store' });
         const data = await response.json();
         if (!response.ok || !data.ok || !Array.isArray(data.products) || cancelled) return;
-        const current = new Map<string, Record<string, unknown>>(
-          data.products.map((product: Record<string, unknown>) => [String(product._id), product])
-        );
+        const current = new Map<string, Record<string, unknown>>();
+        data.products.forEach((product: Record<string, unknown>) => {
+          current.set(String(product._id), product);
+        });
         setCart(previous => previous.flatMap(item => {
           const product = current.get(item.id);
           if (!product) return [];
