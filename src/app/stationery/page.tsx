@@ -9,7 +9,7 @@ type StoreProduct = CartProduct & { stock: number; compareAt: number; featured: 
 const money = (value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(value);
 const mapProduct = (item: Record<string, unknown>): StoreProduct => ({
   id: String(item._id), name: String(item.name || ''), category: String(item.category || 'Other'),
-  price: money(Number(item.price) || 0), image: typeof item.image === 'string' ? item.image : '',
+  price: money(Number(item.price) || 0), unitPrice: Number(item.price) || 0, image: typeof item.image === 'string' ? item.image : '',
   imageUrl: typeof item.image === 'string' ? item.image : '', description: String(item.description || ''),
   stock: Number(item.stock) || 0, compareAt: Number(item.compareAt) || 0, featured: item.featured === true,
 });
@@ -46,8 +46,8 @@ export default function ProductPage() {
 
   const add = (product: StoreProduct) => {
     if (product.stock < 1) return;
-    addToCart({ id: product.id, name: product.name, category: product.category, price: product.price, image: product.image, description: product.description });
-    setToast(product.name + ' added to cart');
+    const added = addToCart({ id: product.id, name: product.name, category: product.category, price: product.price, unitPrice: product.unitPrice, stock: product.stock, image: product.image, description: product.description });
+    setToast(added ? product.name + ' added to cart' : `Only ${product.stock} available; your cart has reached the stock limit.`);
     window.setTimeout(() => setToast(''), 2500);
   };
 
