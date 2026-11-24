@@ -93,7 +93,7 @@ export default function Navbar() {
             {cart.length > 0 && <footer className="border-t border-[#e9e0d5] bg-[#f7f3ea] p-5">
               <div className="mb-3 flex items-center justify-between"><span className="font-semibold text-[#71686a]">Subtotal</span><strong className="text-xl text-[#760314]">₹{cartTotal.toFixed(2)}</strong></div>
               <div className="flex items-center justify-between gap-3"><button onClick={emptyCart} className="inline-flex items-center gap-2 rounded-lg border border-[#d9cbbd] bg-white px-3 py-2.5 text-sm font-semibold text-[#760314] transition hover:bg-[#f7ece8]"><Trash2 size={15}/> Empty cart</button><span className="text-xs text-[#71686a]">Removes all items instantly</span></div>
-              <button disabled className="mt-4 w-full cursor-not-allowed rounded-xl bg-[#760314] py-3 font-bold text-white opacity-80">Checkout coming soon</button><p className="mt-2 text-center text-xs text-[#71686a]">Checkout will be available in the next phase.</p>
+              <Link href="/checkout" onClick={() => setIsCartOpen(false)} className="mt-4 block w-full rounded-xl bg-[#760314] py-3 text-center font-bold text-white transition hover:bg-[#5f020f]">Proceed to checkout</Link><p className="mt-2 text-center text-xs text-[#71686a]">Review your delivery and payment details.</p>
             </footer>}
           </aside>
         </>
