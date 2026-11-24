@@ -114,25 +114,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
     })();
     return () => { cancelled = true; };
-  }, [hydrated]); // Run once after initial hydration; product snapshots refresh on add.
+  }, [hydrated, cart.length]); // Refresh when hydration or cart membership changes.
 
   const addToCart = (product: CartProduct) => {
     if (!Number.isInteger(product.stock) || product.stock < 1 ||
         !Number.isFinite(product.unitPrice) || product.unitPrice < 0) return false;
-    let added = false;
-    setCart(current => {
-      const existing = current.find(item => item.id === product.id);
-      if (existing) {
-        if (existing.quantity >= product.stock) return current;
-        added = true;
-        return current.map(item => item.id === product.id
-          ? { ...product, quantity: Math.min(item.quantity + 1, product.stock) }
-          : item);
-      }
-      added = true;
-      return [...current, { ...product, quantity: 1 }];
-    });
-    return added;
+    const existing = cart.find(item => item.id === product.id);
+    if (existing && existing.quantity >= product.stock) return false;
+    setCart(existing
+      ? cart.map(item => item.id === product.id
+        ? { ...product, quantity: Math.min(item.quantity + 1, product.stock) }
+        : item)
+      : [...cart, { ...product, quantity: 1 }]);
+    return true;
   };
 
   const removeFromCart = (productId: string) => setCart(current => current.filter(item => item.id !== productId));
