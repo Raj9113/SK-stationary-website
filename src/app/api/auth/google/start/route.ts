@@ -8,7 +8,14 @@ const APP_BASE_URL = "https://www.skstationaryjansevakendr.com";
 const GOOGLE_CALLBACK_URL = "https://auth.skstationaryjansevakendr.com/api/auth/google/callback";
 const COOKIE_DOMAIN = ".skstationaryjansevakendr.com";
 
-export async function GET() {
+export async function GET(request: Request) {
+  // The production OAuth callback uses the custom auth subdomain and shared
+  // parent-domain cookies. A Vercel preview cannot use that callback/session.
+  // Keep preview users on this deployment and direct them to email OTP.
+  if (process.env.VERCEL_ENV !== "production") {
+    return NextResponse.redirect(new URL("/account/login?google=preview-unavailable", request.url));
+  }
+
   const clientId = process.env.GOOGLE_CLIENT_ID;
   if (!clientId) return NextResponse.redirect(new URL("/account/login?google=not-configured", APP_BASE_URL));
   const state = randomBytes(24).toString("hex");
