@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Image from 'next/image';
 import { ChevronRight, ShoppingCart, Search, Package } from 'lucide-react';
 import Link from 'next/link';
 import { useCart, type CartProduct } from '@/context/CartContext';
@@ -70,7 +71,7 @@ export default function ProductPage() {
               const quantity = getProductQuantity(product.id);
               return <article key={product.id} className="group overflow-hidden rounded-2xl border border-[#e9e0d5] bg-[#fffdfa] shadow-sm transition-all hover:-translate-y-1 hover:border-[#d7bd9a] hover:shadow-lg">
                 <Link href={`/stationery/${product.id}`} className="relative flex h-36 items-center justify-center overflow-hidden bg-[#f1e9df] sm:h-56 lg:h-64">
-                  {product.imageUrl ? <img src={product.imageUrl} alt={product.name} className="h-full w-full object-contain p-3 sm:p-6 transition-transform duration-500 group-hover:scale-105"/> : <Package size={64} className="text-[#b8a9a0]"/>}
+                  {product.imageUrl ? <Image src={product.imageUrl} alt={product.name} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-contain p-3 transition-transform duration-500 group-hover:scale-105 sm:p-6"/> : <Package size={64} className="text-[#b8a9a0]"/>}
                   {product.featured && <span className="absolute left-4 top-4 rounded-full bg-[#760314] px-3 py-1 text-xs font-bold text-white">Featured</span>}
                   {quantity > 0 && <span className="absolute right-4 top-4 rounded-full bg-[#e2ba5d] px-3 py-1 text-xs font-bold text-[#20191a]"><ShoppingCart size={12} className="mr-1 inline"/>{quantity}</span>}
                 </Link>

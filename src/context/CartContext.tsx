@@ -55,6 +55,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (saved) {
         const parsed: unknown = JSON.parse(saved);
         if (Array.isArray(parsed)) {
+          // localStorage is an external browser store; apply its snapshot during hydration.
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setCart(parsed.filter(isCartItem).map(item => ({
             ...item,
             quantity: Math.min(item.quantity, item.stock),

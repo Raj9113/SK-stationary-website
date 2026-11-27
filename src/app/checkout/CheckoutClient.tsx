@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState, type FormEvent } from "react";
-import { ArrowLeft, MapPin, PackageCheck, ShieldCheck, WalletCards } from "lucide-react";
+import { ArrowLeft, PackageCheck, ShieldCheck, WalletCards } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 
 export type CheckoutAddress = {
@@ -11,6 +11,12 @@ export type CheckoutAddress = {
 };
 type Customer = { name: string; email: string; mobile: string };
 type PaymentMethod = "cod" | "razorpay";
+type ValidatedQuote = {
+  fingerprint: string;
+  subtotalAmount: number;
+  totalAmount: number;
+  items: Array<{ id: string; name: string; quantity: number; unitAmount: number; lineAmount: number }>;
+};
 const money = (value: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(value);
 const field = "w-full rounded-xl border border-[#d9cbbd] bg-white px-3.5 py-3 text-sm text-[#20191a] outline-none transition focus:border-[#760314] focus:ring-2 focus:ring-[#760314]/15";
 const label = "grid gap-1.5 text-sm font-semibold text-[#463b3b]";
@@ -27,15 +33,21 @@ export default function CheckoutClient({ customer, addresses }: { customer: Cust
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [validated, setValidated] = useState(false);
+  const [quote, setQuote] = useState<ValidatedQuote | null>(null);
 
   const address = useMemo(() => addresses.find(a => a.id === selectedAddress), [addresses, selectedAddress]);
   const canCheckout = cart.length > 0;
+  const checkoutFingerprint = JSON.stringify({ items: cart.map(item => ({ id: item.id, quantity: item.quantity })), details, address: useNewAddress ? newAddress : selectedAddress, paymentMethod, notes });
+  const activeQuote = quote?.fingerprint === checkoutFingerprint ? quote : null;
+  const summaryItems = activeQuote
+    ? activeQuote.items.map(item => ({ id: item.id, name: item.name, quantity: item.quantity, unitPrice: item.unitAmount / 100, lineTotal: item.lineAmount / 100 }))
+    : cart.map(item => ({ id: item.id, name: item.name, quantity: item.quantity, unitPrice: item.unitPrice, lineTotal: item.unitPrice * item.quantity }));
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
     setNotice("");
+    setQuote(null);
     if (!details.name.trim() || !details.email.trim() || !details.mobile.trim()) {
       setError("Enter your name, email address and contact number.");
       return;
@@ -49,8 +61,31 @@ export default function CheckoutClient({ customer, addresses }: { customer: Cust
       setError("Choose a delivery address or enter a new one.");
       return;
     }
-    setValidated(true);
-    setNotice("Your checkout details are complete. Order placement and payment processing will be enabled in the next P3 stages.");
+    try {
+      const response = await fetch("/api/checkout/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify({
+          items: cart.map(item => ({ id: item.id, quantity: item.quantity })),
+          customer: details,
+          address: useNewAddress ? newAddress : { id: selectedAddress },
+          paymentMethod,
+          notes,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.ok) {
+        const unavailable = Array.isArray(data.unavailable) ? data.unavailable as Array<{ name?: string; message?: string }> : [];
+        throw new Error(unavailable.length
+          ? unavailable.map(item => `${item.name || "A product"}: ${item.message || "unavailable"}`).join(" ")
+          : data.message || "Unable to validate checkout.");
+      }
+      setQuote({ ...(data.quote as Omit<ValidatedQuote, "fingerprint">), fingerprint: checkoutFingerprint });
+      setNotice("Your contact details, address, current prices and available stock were validated by the server. No order has been created.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to validate checkout.");
+    }
   }
 
   if (!canCheckout) return (
@@ -114,14 +149,14 @@ export default function CheckoutClient({ customer, addresses }: { customer: Cust
           <aside className="rounded-2xl border border-[#e9e0d5] bg-[#fffdfa] p-5 shadow-sm lg:sticky lg:top-36">
             <h2 className="text-lg font-extrabold text-[#5f020f]">Order summary</h2>
             <p className="mt-1 text-xs text-[#71686a]">{cartItemCount} item{cartItemCount===1?"":"s"} in your cart</p>
-            <div className="mt-4 max-h-72 space-y-3 overflow-y-auto">{cart.map(item=><div key={item.id} className="flex justify-between gap-3 border-b border-[#f0e8df] pb-3 text-sm"><div className="min-w-0"><b className="block text-[#20191a]">{item.name}</b><span className="text-xs text-[#71686a]">Qty {item.quantity} × {money(item.unitPrice)}</span></div><b className="shrink-0 text-[#5f020f]">{money(item.unitPrice*item.quantity)}</b></div>)}</div>
-            <div className="mt-4 flex justify-between text-sm text-[#71686a]"><span>Subtotal</span><b className="text-[#20191a]">{money(cartTotal)}</b></div>
+            <div className="mt-4 max-h-72 space-y-3 overflow-y-auto">{summaryItems.map(item=><div key={item.id} className="flex justify-between gap-3 border-b border-[#f0e8df] pb-3 text-sm"><div className="min-w-0"><b className="block text-[#20191a]">{item.name}</b><span className="text-xs text-[#71686a]">Qty {item.quantity} × {money(item.unitPrice)}</span></div><b className="shrink-0 text-[#5f020f]">{money(item.lineTotal)}</b></div>)}</div>
+            <div className="mt-4 flex justify-between text-sm text-[#71686a]"><span>Subtotal{activeQuote?" · server verified":""}</span><b className="text-[#20191a]">{money(activeQuote ? activeQuote.subtotalAmount / 100 : cartTotal)}</b></div>
             <div className="mt-2 flex justify-between text-sm text-[#71686a]"><span>Delivery</span><span>Calculated later</span></div>
-            <div className="mt-4 flex justify-between border-t border-[#e9e0d5] pt-4"><b className="text-[#5f020f]">Estimated total</b><strong className="text-xl text-[#760314]">{money(cartTotal)}</strong></div>
+            <div className="mt-4 flex justify-between border-t border-[#e9e0d5] pt-4"><b className="text-[#5f020f]">Estimated total</b><strong className="text-xl text-[#760314]">{money(activeQuote ? activeQuote.totalAmount / 100 : cartTotal)}</strong></div>
             <p className="mt-2 text-[11px] leading-relaxed text-[#71686a]">Final price, stock availability and delivery charges will be confirmed by the server before an order is placed.</p>
             {error&&<p role="alert" className="mt-4 rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-700">{error}</p>}
-            {notice&&<p role="status" className="mt-4 rounded-lg bg-green-50 p-3 text-sm font-semibold text-green-800">{notice}</p>}
-            <button type="submit" disabled={validated} className="mt-5 w-full rounded-xl bg-[#760314] px-4 py-3.5 font-extrabold text-white transition hover:bg-[#5f020f] disabled:cursor-not-allowed disabled:opacity-60">{validated?"Details validated":"Review checkout details"}</button>
+            {activeQuote&&notice&&<p role="status" className="mt-4 rounded-lg bg-green-50 p-3 text-sm font-semibold text-green-800">{notice}</p>}
+            <button type="submit" className="mt-5 w-full rounded-xl bg-[#760314] px-4 py-3.5 font-extrabold text-white transition hover:bg-[#5f020f]">{activeQuote?"Revalidate checkout":"Review checkout details"}</button>
             <p className="mt-3 text-center text-[11px] text-[#71686a]">No payment is taken and no order is created in this preview stage.</p>
             <Link href="/account/profile/addresses" className="mt-4 block text-center text-xs font-bold text-[#760314]">Manage saved addresses</Link>
           </aside>

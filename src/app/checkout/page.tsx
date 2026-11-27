@@ -8,7 +8,7 @@ export default async function CheckoutPage() {
   const user = await getAuthenticatedUser();
   if (!user) redirect("/account/login");
 
-  const addresses: CheckoutAddress[] = (user.addresses || []).map((address: any) => ({
+  const addresses: CheckoutAddress[] = (user.addresses || []).map((address) => ({
     id: String(address._id || ""),
     label: address.label || "Address",
     line1: address.line1 || "",

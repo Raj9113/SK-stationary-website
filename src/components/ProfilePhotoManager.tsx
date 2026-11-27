@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useRef, useState } from "react";
 
 export default function ProfilePhotoManager({ initialPhoto }: { initialPhoto: string }) {
@@ -27,7 +28,7 @@ export default function ProfilePhotoManager({ initialPhoto }: { initialPhoto: st
     finally { setBusy(false); }
   }
   return <div style={{display:"flex",alignItems:"center",gap:14,marginTop:14,flexWrap:"wrap"}}>
-    {photo ? <img src={photo} alt="Your profile" style={{width:76,height:76,borderRadius:"50%",objectFit:"cover",border:"2px solid #e9e0d5"}}/> : <div style={{width:76,height:76,borderRadius:"50%",display:"grid",placeItems:"center",background:"#760314",color:"white",fontSize:28,fontWeight:700}}>＋</div>}
+    {photo ? <Image src={photo} alt="Your profile" width={76} height={76} unoptimized style={{width:76,height:76,borderRadius:"50%",objectFit:"cover",border:"2px solid #e9e0d5"}}/> : <div style={{width:76,height:76,borderRadius:"50%",display:"grid",placeItems:"center",background:"#760314",color:"white",fontSize:28,fontWeight:700}}>＋</div>}
     <div style={{display:"flex",gap:8,flexWrap:"wrap"}}><input ref={input} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={e=>upload(e.target.files?.[0])}/><button type="button" disabled={busy} onClick={()=>input.current?.click()} style={{padding:"9px 13px",borderRadius:8,border:"1px solid #760314",background:"white",color:"#760314",fontWeight:700}}>{busy?"Saving…":"Upload photo"}</button>{photo&&<button type="button" disabled={busy} onClick={remove} style={{padding:"9px 13px",borderRadius:8,border:"1px solid #d9cec3",background:"white"}}>Remove</button>}</div>
     {message&&<small role="status" style={{width:"100%",color:"#71686a"}}>{message}</small>}
   </div>;
