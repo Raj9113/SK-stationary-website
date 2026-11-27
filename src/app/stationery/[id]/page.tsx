@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useCart, type CartProduct } from '@/context/CartContext';
@@ -56,8 +57,8 @@ export default function ProductDetail() {
         {loading ? <div className="py-32 text-center text-[#71686a]">Loading product…</div> : error ? <div className="py-32 text-center text-red-700">{error}</div> : !product ? <div className="rounded-2xl border border-[#e9e0d5] bg-[#fffdfa] py-24 text-center"><Package size={48} className="mx-auto mb-4 text-[#b8a9a0]"/><h1 className="text-2xl font-bold text-[#5f020f]">Product not found</h1><p className="mt-2 text-[#71686a]">This product may have been removed or is no longer available.</p><Link href="/stationery" className="mt-6 inline-block rounded-full bg-[#760314] px-6 py-3 font-semibold text-white">Browse products</Link></div> : (
           <>
             <section className="grid grid-cols-1 items-start gap-8 md:grid-cols-2 md:gap-12">
-              <div className="flex min-h-[320px] items-center justify-center overflow-hidden rounded-3xl border border-[#e9e0d5] bg-[#f1e9df] md:min-h-[500px]">
-                {product.imageUrl ? <img src={product.imageUrl} alt={product.name} className="max-h-[540px] w-full object-contain p-8"/> : <Package size={100} className="text-[#b8a9a0]"/>}
+              <div className="relative flex min-h-[320px] items-center justify-center overflow-hidden rounded-3xl border border-[#e9e0d5] bg-[#f1e9df] md:min-h-[500px]">
+                {product.imageUrl ? <Image src={product.imageUrl} alt={product.name} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-contain p-8"/> : <Package size={100} className="text-[#b8a9a0]"/>}
               </div>
               <div className="rounded-2xl border border-[#e9e0d5] bg-[#fffdfa] p-6 sm:p-8">
                 <p className="text-sm font-bold uppercase tracking-widest text-[#760314]">{product.category}</p>
@@ -72,7 +73,7 @@ export default function ProductDetail() {
                 </div>
               </div>
             </section>
-            {related.length > 0 && <section className="mt-16"><div className="mb-5 flex items-center justify-between"><h2 className="text-2xl font-bold text-[#5f020f]">More in {product.category}</h2><Link href="/stationery" className="text-sm font-semibold text-[#760314]">View all</Link></div><div className="grid grid-cols-2 gap-4 md:grid-cols-4">{related.map(item => <Link key={item.id} href={`/stationery/${item.id}`} className="rounded-2xl border border-[#e9e0d5] bg-[#fffdfa] p-4 transition hover:-translate-y-1 hover:shadow-md"><div className="flex h-36 items-center justify-center rounded-xl bg-[#f1e9df]">{item.imageUrl ? <img src={item.imageUrl} alt={item.name} className="max-h-full object-contain p-2"/> : <Package className="text-[#b8a9a0]" size={42}/>}</div><h3 className="mt-3 line-clamp-2 font-bold text-[#20191a]">{item.name}</h3><p className="mt-2 font-semibold text-[#760314]">{item.price}</p></Link>)}</div></section>}
+            {related.length > 0 && <section className="mt-16"><div className="mb-5 flex items-center justify-between"><h2 className="text-2xl font-bold text-[#5f020f]">More in {product.category}</h2><Link href="/stationery" className="text-sm font-semibold text-[#760314]">View all</Link></div><div className="grid grid-cols-2 gap-4 md:grid-cols-4">{related.map(item => <Link key={item.id} href={`/stationery/${item.id}`} className="rounded-2xl border border-[#e9e0d5] bg-[#fffdfa] p-4 transition hover:-translate-y-1 hover:shadow-md"><div className="relative flex h-36 items-center justify-center overflow-hidden rounded-xl bg-[#f1e9df]">{item.imageUrl ? <Image src={item.imageUrl} alt={item.name} fill sizes="(max-width: 768px) 50vw, 25vw" className="object-contain p-2"/> : <Package className="text-[#b8a9a0]" size={42}/>}</div><h3 className="mt-3 line-clamp-2 font-bold text-[#20191a]">{item.name}</h3><p className="mt-2 font-semibold text-[#760314]">{item.price}</p></Link>)}</div></section>}
           </>
         )}
       </div>

@@ -1,8 +1,10 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  // Aapki config options yahan aayengi (abhi ke liye khali chhod dein)
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  allowedDevOrigins: ["local-origin.dev", "*.local-origin.dev"],
+  images: {
+    remotePatterns: [{ protocol: "https", hostname: "res.cloudinary.com", pathname: "/**" }],
+  },
 };
 
-module.exports = {
-  allowedDevOrigins: ['local-origin.dev', '*.local-origin.dev'],
-}
+export default nextConfig;

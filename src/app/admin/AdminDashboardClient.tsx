@@ -1,6 +1,8 @@
 "use client";
 import "./admin.css";
 
+import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Plus, Search, Pencil, Trash2, Package, Boxes, AlertTriangle, X, Save, Image as ImageIcon, Star, Eye, LayoutDashboard, Tags, Settings, ArrowUpRight } from "lucide-react";
 
@@ -142,7 +144,7 @@ export default function AdminDashboard() {
       <main className="admin-main">
         <header className="admin-top">
           <div><span className="admin-breadcrumb">Workspace / Products</span><h1>Product dashboard</h1><p>Manage your stationery catalogue and inventory.</p></div>
-          <a href="/" className="admin-view"><Eye size={17} /> View storefront <ArrowUpRight size={15} /></a>
+          <Link href="/" className="admin-view"><Eye size={17} /> View storefront <ArrowUpRight size={15} /></Link>
         </header>
         <div className="admin-warning"><AlertTriangle size={18} /><span><b>Live inventory:</b> product changes are saved to the store database. Image uploads are restricted to the administrator account.</span></div>
 
@@ -165,7 +167,7 @@ export default function AdminDashboard() {
                 <thead><tr><th>PRODUCT</th><th>SKU</th><th>CATEGORY</th><th>PRICE</th><th>STOCK</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
                 <tbody>{filtered.map(p => (
                   <tr key={p.id}>
-                    <td><div className="admin-product-cell"><div className="admin-thumb">{p.image ? <img src={p.image} alt="" /> : <ImageIcon />}</div><div><b>{p.name}</b><small>{p.featured ? "★ Featured" : p.description}</small></div></div></td>
+                    <td><div className="admin-product-cell"><div className="admin-thumb">{p.image ? <Image src={p.image} alt="" width={40} height={40} /> : <ImageIcon />}</div><div><b>{p.name}</b><small>{p.featured ? "★ Featured" : p.description}</small></div></div></td>
                     <td>{p.sku}</td><td>{p.category}</td>
                     <td><b>{money(p.price)}</b>{p.compareAt > p.price && <small className="admin-old-price">{money(p.compareAt)}</small>}</td>
                     <td><span className={p.stock === 0 ? "stock-out" : p.stock <= 10 ? "stock-low" : "stock-ok"}>{p.stock} units</span></td>
@@ -198,7 +200,7 @@ export default function AdminDashboard() {
                 {uploading && <small>Uploading image…</small>}
                 {form.image ? (
                   <div className="admin-image-editor">
-                    <div className="admin-product-cell"><img src={form.image} alt="Product preview" style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 10 }} /><small>Current image</small></div>
+                    <div className="admin-product-cell"><Image src={form.image} alt="Product preview" width={72} height={72} style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 10 }} /><small>Current image</small></div>
                     <button type="button" className="admin-secondary admin-remove-image" onClick={removeImage} disabled={uploading || saving}>
                       <Trash2 size={15} /> Remove image
                     </button>
